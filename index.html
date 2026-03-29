@@ -453,9 +453,9 @@ tfoot td.r{text-align:right;color:var(--acc);}
     </div>
     <div class="lf">
       <label>Password</label>
-      <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')window.doLogin&&window.doLogin()">
     </div>
-    <button class="login-btn" onclick="doLogin()">Login</button>
+    <button class="login-btn" id="loginBtn">Login</button>
     <div class="login-err" id="loginErr"></div>
   </div>
 </div>
@@ -1215,6 +1215,11 @@ function init(){
 init();
 
 document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeOverlay(); });
+
+// Wire login button properly inside module scope
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
 document.getElementById('snapOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('snapOverlay')) closeSnapOverlay(); });
 document.getElementById('adminOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('adminOverlay')) closeAdmin(); });
 </script>
