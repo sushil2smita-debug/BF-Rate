@@ -443,7 +443,7 @@ tfoot td.r{text-align:right;color:var(--acc);}
 
 
 <!-- LOGIN SCREEN -->
-<div class="login-screen" id="loginScreen">
+<div class="login-screen off" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">BF COSTING</div>
     <div class="login-sub">Sign in to continue</div>
@@ -1140,6 +1140,9 @@ window.deleteUser      = deleteUser;
 
 // ── INIT ───────────────────────────────────────────
 async function init(){
+  // Hide loading spinner immediately
+  document.getElementById('ls').classList.add('off');
+
   // Check if already logged in this session
   const saved = sessionStorage.getItem('bfc_user');
   if(saved){
@@ -1149,16 +1152,18 @@ async function init(){
       return;
     } catch(e){}
   }
-  // Show login screen
-  document.getElementById('ls').classList.add('off');
-  // Check if admin exists, if not create default admin
+
+  // Show login screen right away
+  document.getElementById('loginScreen').classList.remove('off');
+
+  // In background — create default admin if no users exist yet
   try{
     const adminSnap = await getDoc(doc(db,'users','admin'));
     if(!adminSnap.exists()){
       const hash = await hashStr('admin123');
       await setDoc(doc(db,'users','admin'),{password:hash, role:'admin'});
     }
-  } catch(e){}
+  } catch(e){ console.warn('Setup:',e); }
 }
 init();
 
