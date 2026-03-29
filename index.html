@@ -992,7 +992,7 @@ async function doLogin(){
   const errEl = document.getElementById('loginErr');
   errEl.textContent = '';
   const btn = document.querySelector('.login-btn');
-  btn.textContent = 'Checking...';
+  btn.textContent = 'Please wait...';
   btn.disabled = true;
 
   if(!username || !password){
@@ -1001,20 +1001,44 @@ async function doLogin(){
   }
 
   try{
-    // Auto-create default admin if first time (no users exist)
-    const allUsers = await getDocs(collection(db,'users'));
-    if(allUsers.empty){
-      const defaultHash = await hashStr('admin123');
-      await setDoc(doc(db,'users','admin'),{password:defaultHash, role:'admin'});
+    const hash = await hashStr(password);
+
+    // Try to get user document
+    let snap;
+    try{
+      snap = await getDoc(doc(db,'users', username));
+    } catch(fetchErr){
+      // Firebase rules blocking or network error — try creating admin first
+      console.warn('Fetch error:', fetchErr.message);
+      if(username === 'admin'){
+        try{
+          await setDoc(doc(db,'users','admin'),{password: await hashStr('admin123'), role:'admin'});
+          snap = await getDoc(doc(db,'users','admin'));
+        } catch(createErr){
+          errEl.textContent = 'Firebase error: ' + createErr.message;
+          btn.textContent = 'Login'; btn.disabled = false; return;
+        }
+      } else {
+        errEl.textContent = 'Connection error: ' + fetchErr.message;
+        btn.textContent = 'Login'; btn.disabled = false; return;
+      }
     }
 
-    const snap = await getDoc(doc(db,'users', username));
-    if(!snap.exists()){
+    // First time ever — no users collection, create admin
+    if(!snap || !snap.exists()){
+      if(username === 'admin' && password === 'admin123'){
+        await setDoc(doc(db,'users','admin'),{password: await hashStr('admin123'), role:'admin'});
+        currentUser = {username:'admin', role:'admin'};
+        sessionStorage.setItem('bfc_user', JSON.stringify(currentUser));
+        document.getElementById('loginScreen').style.display = 'none';
+        showApp();
+        return;
+      }
       errEl.textContent = 'Invalid username or password';
       btn.textContent = 'Login'; btn.disabled = false; return;
     }
+
     const data = snap.data();
-    const hash = await hashStr(password);
     if(hash !== data.password){
       errEl.textContent = 'Invalid username or password';
       btn.textContent = 'Login'; btn.disabled = false; return;
@@ -1024,9 +1048,10 @@ async function doLogin(){
     sessionStorage.setItem('bfc_user', JSON.stringify(currentUser));
     document.getElementById('loginScreen').style.display = 'none';
     showApp();
+
   } catch(e){
-    console.error(e);
-    errEl.textContent = 'Login failed. Check internet connection.';
+    console.error('Login error:', e);
+    errEl.textContent = 'Error: ' + e.message;
     btn.textContent = 'Login'; btn.disabled = false;
   }
 }
