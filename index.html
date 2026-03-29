@@ -249,7 +249,7 @@ tfoot td.r{text-align:right;color:var(--acc);}
 </head>
 <body>
 
-<div class="ls" id="ls"><div class="spin"></div><p>Loading…</p></div>
+<div class="ls off" id="ls"><div class="spin"></div><p>Loading…</p></div>
 
 <div class="hdr">
   <div class="logo">BF COSTING</div>
@@ -443,7 +443,7 @@ tfoot td.r{text-align:right;color:var(--acc);}
 
 
 <!-- LOGIN SCREEN -->
-<div class="login-screen off" id="loginScreen">
+<div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">BF COSTING</div>
     <div class="login-sub">Sign in to continue</div>
@@ -1004,8 +1004,10 @@ async function doLogin(){
 
     currentUser = { username, role: data.role };
     sessionStorage.setItem('bfc_user', JSON.stringify(currentUser));
+    document.getElementById('loginScreen').style.display = 'none';
     showApp();
   } catch(e){
+    console.error(e);
     errEl.textContent = 'Login failed. Check connection.';
   }
 }
@@ -1045,6 +1047,8 @@ function showApp(){
     document.querySelectorAll('.btn-snap,.btn-del').forEach(b=>b.style.display='none');
   }
 
+  // show brief loading while fetching data
+  document.getElementById('ls').classList.remove('off');
   loadAll().then(()=>{
     document.getElementById('ls').classList.add('off');
     document.getElementById('gProd').addEventListener('input', globalChanged);
@@ -1052,6 +1056,15 @@ function showApp(){
     renderPanel();
     renderNav();
     renderSheet();
+    // create default admin in background if needed
+    hashStr('admin123').then(hash=>{
+      getDoc(doc(db,'users','admin')).then(s=>{
+        if(!s.exists()) setDoc(doc(db,'users','admin'),{password:hash,role:'admin'});
+      }).catch(()=>{});
+    });
+  }).catch(e=>{
+    document.getElementById('ls').classList.add('off');
+    toast('Failed to load data. Check connection.','',true);
   });
 }
 
@@ -1139,31 +1152,21 @@ window.addUser         = addUser;
 window.deleteUser      = deleteUser;
 
 // ── INIT ───────────────────────────────────────────
-async function init(){
-  // Hide loading spinner immediately
-  document.getElementById('ls').classList.add('off');
-
-  // Check if already logged in this session
+function init(){
+  // Check session — if logged in skip login screen
   const saved = sessionStorage.getItem('bfc_user');
   if(saved){
     try{
       currentUser = JSON.parse(saved);
+      document.getElementById('loginScreen').style.display = 'none';
       showApp();
       return;
-    } catch(e){}
-  }
-
-  // Show login screen right away
-  document.getElementById('loginScreen').classList.remove('off');
-
-  // In background — create default admin if no users exist yet
-  try{
-    const adminSnap = await getDoc(doc(db,'users','admin'));
-    if(!adminSnap.exists()){
-      const hash = await hashStr('admin123');
-      await setDoc(doc(db,'users','admin'),{password:hash, role:'admin'});
+    } catch(e){
+      sessionStorage.removeItem('bfc_user');
     }
-  } catch(e){ console.warn('Setup:',e); }
+  }
+  // Show login screen — Firebase not called yet
+  document.getElementById('loginScreen').style.display = 'flex';
 }
 init();
 
