@@ -415,11 +415,11 @@ tfoot td.r{text-align:right;color:var(--acc);}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div class="fg">
         <label>BF Number</label>
-        <input type="number" id="mBF" placeholder="e.g. 26">
+        <input type="number" id="mBF" placeholder="e.g. 18">
       </div>
       <div class="fg">
-        <label>Grade Label</label>
-        <input type="text" id="mLabel" placeholder="e.g. Kraft, White">
+        <label>GSM</label>
+        <input type="number" id="mGSM" placeholder="e.g. 90">
       </div>
     </div>
     <div class="msec">Raw Material %</div>
@@ -599,11 +599,11 @@ async function clearAll(){
 
 function defaultBF(){
   return [
-    {bf:18,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:20,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:22,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:24,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:28,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}}
+    {bf:18,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:20,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:22,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:24,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:28,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}}
   ];
 }
 
@@ -683,7 +683,7 @@ function renderNav(){
   BF.forEach((d,i)=>{
     const b=document.createElement('button');
     b.className='bfbtn'+(i===cur?' active':'');
-    b.textContent=d.bf+' BF'+(d.label?' · '+d.label:'');
+    b.textContent=d.bf+' BF'+(d.gsm?' / '+d.gsm+' GSM':'');
     b.onclick=()=>{ cur=i; renderNav(); renderSheet(); closeDrawer(); switchTab('sheet'); };
     nav.appendChild(b);
   });
@@ -701,7 +701,7 @@ function switchTab(t){
 // ── SHEET ──────────────────────────────────────────
 function renderSheet(){
   const d=BF[cur], k=rk(), l=lp(d);
-  document.getElementById('bfTitle').textContent = d.bf+' BF'+(d.label?' — '+d.label:'');
+  document.getElementById('bfTitle').textContent = d.bf+' BF'+(d.gsm?' — '+d.gsm+' GSM':'');
   document.getElementById('mYield').textContent  = G.yield;
   document.getElementById('mProd').textContent   = G.prod;
   document.getElementById('mRaw').textContent    = k;
@@ -764,7 +764,7 @@ function renderHistory(){
   snapshots.forEach((s,si)=>{
     const card=document.createElement('div');
     card.className='hcard';
-    const bfTabs=s.BF.map((b,bi)=>`<button class="hbftab${bi===0?' active':''}" onclick="switchHBF(${si},${bi})">${b.bf} BF${b.label?' · '+b.label:''}</button>`).join('');
+    const bfTabs=s.BF.map((b,bi)=>`<button class="hbftab${bi===0?' active':''}" onclick="switchHBF(${si},${bi})">${b.bf} BF${b.gsm?' / '+b.gsm+' GSM':''}</button>`).join('');
     card.innerHTML=`
       <div class="hcard-head" onclick="toggleHCard(${si})">
         <div>
@@ -901,7 +901,7 @@ function setGrade(mat,val){
 // ── ADD / DELETE BF ────────────────────────────────
 function openAdd(){
   document.getElementById('mBF').value='';
-  document.getElementById('mLabel').value='';
+  document.getElementById('mGSM').value='';
   const mf=document.getElementById('mRawFields'); mf.innerHTML='';
   OTHER().forEach(m=>{
     const k=m.replace(/[\s\/]/g,'_');
@@ -924,15 +924,15 @@ function closeOverlay(){ document.getElementById('overlay').classList.remove('op
 
 async function confirmAddBF(){
   const n=parseInt(document.getElementById('mBF').value);
-  const label=(document.getElementById('mLabel').value||'').trim();
+  const gsm=parseInt(document.getElementById('mGSM').value)||0;
   if(!n){ toast('Enter BF number','',true); return; }
-  if(BF.find(d=>d.bf===n)){ toast('BF '+n+' already exists','',true); return; }
+  if(BF.find(d=>d.bf===n&&d.gsm===gsm)){ toast('BF '+n+' GSM '+gsm+' already exists','',true); return; }
   const raw={}; let sum=0;
   OTHER().forEach(m=>{ const k=m.replace(/[\s\/]/g,'_'); raw[m]=parseFloat(document.getElementById('mp_'+k).value)||0; sum+=raw[m]; });
   if(sum>100){ toast('Total exceeds 100%','',true); return; }
-  BF.push({bf:n,label,raw,varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}});
-  BF.sort((a,b)=>a.bf-b.bf);
-  cur=BF.findIndex(d=>d.bf===n);
+  BF.push({bf:n,gsm,raw,varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}});
+  BF.sort((a,b)=>a.bf-b.bf||((a.gsm||0)-(b.gsm||0)));
+  cur=BF.findIndex(d=>d.bf===n&&d.gsm===gsm);
   closeOverlay();
   await persistSettings();
   renderNav(); renderSheet();
@@ -941,7 +941,7 @@ async function confirmAddBF(){
 
 async function deleteCurrent(){
   if(BF.length===1){ toast('Cannot delete last BF','',true); return; }
-  if(!confirm('Delete BF '+BF[cur].bf+'?')) return;
+  const dc=BF[cur]; if(!confirm('Delete '+dc.bf+' BF'+(dc.gsm?' / '+dc.gsm+' GSM':'')+'?')) return;
   BF.splice(cur,1);
   cur=Math.max(0,cur-1);
   await persistSettings();
@@ -955,7 +955,7 @@ function clearAllHistory(){ if(confirm('Delete all history?')) clearAll(); }
 // ── PRINT ──────────────────────────────────────────
 function doPrint(){
   const d=BF[cur];
-  document.getElementById('ph_title').textContent=d.bf+' BF — Costing Sheet';
+  document.getElementById('ph_title').textContent=d.bf+' BF'+(d.gsm?' / '+d.gsm+' GSM':'')+' — Costing Sheet';
   document.getElementById('ph_meta').textContent='Yield: '+G.yield+'%   |   Production: '+G.prod+' kg   |   Raw Input: '+rk()+' kg';
   window.print();
 }
@@ -976,7 +976,7 @@ function doCSV(){
   });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));
-  a.download=`BF${d.bf}_Costing.csv`; a.click();
+  a.download=`BF${d.bf}${d.gsm?'_'+d.gsm+'GSM':''}_Costing.csv`; a.click();
 }
 
 // ── DRAWER ─────────────────────────────────────────
