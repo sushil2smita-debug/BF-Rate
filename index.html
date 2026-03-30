@@ -1235,13 +1235,14 @@ document.getElementById('adminOverlay').addEventListener('click',e=>{ if(e.targe
 
 <script>
 // ── PWA MANIFEST (generated inline) ────────────────
-const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="32" fill="#0d1117"/>
-  <rect x="8" y="8" width="176" height="176" rx="28" fill="#161b22"/>
-  <rect x="8" y="8" width="176" height="6" rx="3" fill="#f0a500"/>
-  <text x="96" y="80" font-family="monospace" font-size="28" font-weight="bold" fill="#f0a500" text-anchor="middle">BF</text>
-  <text x="96" y="112" font-family="monospace" font-size="14" fill="#00c8a0" text-anchor="middle">COSTING</text>
-  <text x="96" y="140" font-family="monospace" font-size="11" fill="#7d8590" text-anchor="middle">SYSTEM</text>
+const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0d1117"/>
+  <rect x="0" y="0" width="512" height="16" rx="8" fill="#f0a500"/>
+  <rect x="0" y="496" width="512" height="16" rx="8" fill="#f0a500"/>
+  <text x="256" y="220" font-family="Arial Black,Arial,sans-serif" font-size="160" font-weight="900" fill="#f0a500" text-anchor="middle">BF</text>
+  <rect x="60" y="248" width="392" height="6" rx="3" fill="#21262d"/>
+  <text x="256" y="340" font-family="Arial,sans-serif" font-size="72" font-weight="700" fill="#00c8a0" text-anchor="middle">COSTING</text>
+  <text x="256" y="410" font-family="Arial,sans-serif" font-size="46" font-weight="400" fill="#7d8590" text-anchor="middle">SYSTEM</text>
 </svg>`;
 
 const iconBlob = new Blob([iconSvg], {type:'image/svg+xml'});
