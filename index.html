@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>BF Costing</title>
+<meta name="description" content="BF Costing Sheet — Paper Mill Costing System">
+<meta name="theme-color" content="#f0a500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BF Costing">
+<link rel="manifest" id="manifestLink">
+<link rel="apple-touch-icon" id="appleIcon">
+<link rel="icon" type="image/svg+xml" id="faviconSvg">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -267,6 +275,7 @@ tfoot td.r{text-align:right;color:var(--acc);}
     </div>
     <div class="user-chip" id="userChip" style="display:none;">
       <span>👤 <b id="userChipName"></b></span>
+      <button class="hbtn" id="installBtn" onclick="triggerInstall()" style="display:none;padding:4px 8px;font-size:.68rem;border-color:var(--acc2);color:var(--acc2);">⬇ Install App</button>
       <button class="hbtn" onclick="doLogout()" style="padding:4px 8px;font-size:.68rem;">Logout</button>
     </div>
   </div>
@@ -1222,6 +1231,78 @@ document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==
 document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
 document.getElementById('snapOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('snapOverlay')) closeSnapOverlay(); });
 document.getElementById('adminOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('adminOverlay')) closeAdmin(); });
+</script>
+
+<script>
+// ── PWA MANIFEST (generated inline) ────────────────
+const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#0d1117"/>
+  <rect x="8" y="8" width="176" height="176" rx="28" fill="#161b22"/>
+  <rect x="8" y="8" width="176" height="6" rx="3" fill="#f0a500"/>
+  <text x="96" y="80" font-family="monospace" font-size="28" font-weight="bold" fill="#f0a500" text-anchor="middle">BF</text>
+  <text x="96" y="112" font-family="monospace" font-size="14" fill="#00c8a0" text-anchor="middle">COSTING</text>
+  <text x="96" y="140" font-family="monospace" font-size="11" fill="#7d8590" text-anchor="middle">SYSTEM</text>
+</svg>`;
+
+const iconBlob = new Blob([iconSvg], {type:'image/svg+xml'});
+const iconUrl  = URL.createObjectURL(iconBlob);
+
+// Set favicon
+document.getElementById('faviconSvg').href = iconUrl;
+
+// Set apple touch icon
+document.getElementById('appleIcon').href = iconUrl;
+
+// Generate manifest
+const manifest = {
+  name: "BF Costing System",
+  short_name: "BF Costing",
+  description: "Paper Mill BF Costing Sheet",
+  start_url: "/",
+  display: "standalone",
+  background_color: "#0d1117",
+  theme_color: "#f0a500",
+  orientation: "any",
+  icons: [
+    { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+    { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+  ]
+};
+
+const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+document.getElementById('manifestLink').href = URL.createObjectURL(manifestBlob);
+
+// ── SERVICE WORKER (for offline + install prompt) ──
+if('serviceWorker' in navigator){
+  const swCode = `
+    const CACHE = 'bf-costing-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+}
+
+// ── INSTALL PROMPT ──────────────────────────────────
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installPrompt = e;
+  // Show install button if exists
+  const btn = document.getElementById('installBtn');
+  if(btn) btn.style.display = 'inline-flex';
+});
+
+window.triggerInstall = function(){
+  if(installPrompt){
+    installPrompt.prompt();
+    installPrompt.userChoice.then(()=>{ installPrompt = null; });
+  }
+};
 </script>
 </body>
 </html>
