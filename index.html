@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BF Costing</title>
+<meta name="description" content="BF Costing Sheet — Paper Mill Costing System">
+<meta name="theme-color" content="#f0a500">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BF Costing">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-512.png">
+<link rel="icon" type="image/png" href="/icon-512.png">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--sur:#161b22;--sur2:#1c2128;
+  --bdr:#21262d;--acc:#f0a500;--acc2:#00c8a0;
+  --txt:#e6edf3;--mut:#7d8590;--red:#ff4c4c;
+  --grn:#3fb950;--blu:#58a6ff;--r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;font-family:'Sora',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;}
+
+/* HEADER */
+.hdr{background:var(--sur);border-bottom:2px solid var(--acc);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:8px;flex-wrap:wrap;}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:.95rem;font-weight:700;color:var(--acc);letter-spacing:.06em;white-space:nowrap;}
+.nav-wrap{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.bfbtn{background:transparent;border:1.5px solid var(--bdr);color:var(--mut);font-family:'IBM Plex Mono',monospace;font-size:.74rem;padding:6px 13px;border-radius:var(--r);cursor:pointer;transition:all .15s;font-weight:600;white-space:nowrap;}
+.bfbtn:hover{border-color:var(--acc);color:var(--acc);}
+.bfbtn.active{background:var(--acc);border-color:var(--acc);color:#000;}
+.hbtn{background:transparent;border:1.5px solid var(--bdr);color:var(--mut);font-family:'IBM Plex Mono',monospace;font-size:.74rem;padding:6px 12px;border-radius:var(--r);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.hbtn:hover{border-color:var(--acc);color:var(--acc);}
+.hbtn.green{border-color:var(--acc2);color:var(--acc2);}
+.hbtn.green:hover{background:rgba(0,200,160,.1);}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 52px);}
+
+/* LEFT PANEL */
+.gpanel{width:265px;min-width:265px;background:var(--sur);border-right:1px solid var(--bdr);padding:16px 14px;overflow-y:auto;flex-shrink:0;transition:transform .25s;}
+.gpanel h3{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);padding-bottom:8px;border-bottom:1px solid var(--bdr);margin-bottom:14px;}
+.psect{margin-bottom:18px;}
+.psect h4{font-size:.64rem;font-family:'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:8px;}
+.gf{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.gf label{font-size:.75rem;color:var(--txt);flex:1;}
+.gf input{width:86px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:5px 7px;text-align:right;outline:none;transition:border .15s;}
+.gf input:focus{border-color:var(--acc);}
+.gf .u{font-size:.65rem;color:var(--mut);width:18px;text-align:center;}
+.raw-disp{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:6px 10px;margin-top:4px;}
+.raw-disp span:first-child{font-size:.7rem;color:var(--mut);font-family:'IBM Plex Mono',monospace;}
+.raw-disp span:last-child{font-size:.8rem;color:var(--acc);font-weight:600;font-family:'IBM Plex Mono',monospace;}
+
+/* TABS in sheet area */
+.tab-row{display:flex;gap:0;border-bottom:2px solid var(--bdr);margin-bottom:16px;}
+.tab{background:transparent;border:none;font-family:'IBM Plex Mono',monospace;font-size:.76rem;font-weight:600;color:var(--mut);padding:8px 18px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.tab:hover{color:var(--txt);}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc);}
+
+/* SHEET */
+.sheet{flex:1;padding:20px 18px;overflow-y:auto;min-width:0;}
+.sheet-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.bf-title{font-family:'IBM Plex Mono',monospace;font-size:2rem;font-weight:700;color:var(--acc);line-height:1;}
+.bf-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;}
+.chip{background:var(--sur);border:1px solid var(--bdr);border-radius:4px;padding:3px 9px;font-size:.7rem;font-family:'IBM Plex Mono',monospace;color:var(--mut);}
+.chip b{color:var(--acc2);}
+
+.slabel{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.12em;color:var(--mut);text-transform:uppercase;margin:18px 0 7px;border-left:3px solid var(--acc);padding-left:8px;}
+
+/* TABLES */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--bdr);}
+table{width:100%;border-collapse:collapse;min-width:420px;}
+thead th{background:var(--sur);color:var(--mut);font-family:'IBM Plex Mono',monospace;font-size:.63rem;letter-spacing:.07em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--bdr);white-space:nowrap;}
+th.r,td.r{text-align:right;}
+tbody tr{border-bottom:1px solid var(--bdr);}
+tbody tr:nth-child(even){background:var(--sur2);}
+tbody tr:hover{background:rgba(240,165,0,.04);}
+tbody td{padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:.76rem;vertical-align:middle;}
+td.amt{text-align:right;color:var(--acc2);font-weight:600;}
+td.zero{text-align:right;color:var(--bdr);}
+tr.local-r{background:rgba(240,165,0,.04)!important;}
+tfoot td{padding:9px 10px;font-family:'IBM Plex Mono',monospace;font-size:.78rem;font-weight:700;background:var(--sur);border-top:2px solid var(--acc);}
+tfoot td.r{text-align:right;color:var(--acc);}
+.ec{background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:.76rem;width:58px;text-align:right;outline:none;padding:4px 6px;}
+.ec:focus{border-color:var(--acc2);background:rgba(0,200,160,.05);}
+.ec.ro{background:rgba(240,165,0,.07);border:1px solid rgba(240,165,0,.3);color:var(--acc);font-weight:700;cursor:default;}
+
+/* TOTALS */
+.tot-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+.tc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 15px;}
+.tc.grand{background:linear-gradient(135deg,rgba(240,165,0,.11),rgba(0,200,160,.07));border-color:var(--acc);grid-column:1/-1;}
+.tc-lbl{font-family:'IBM Plex Mono',monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);margin-bottom:5px;}
+.tc-val{font-family:'IBM Plex Mono',monospace;font-size:1.35rem;font-weight:700;color:var(--acc);}
+.tc.grand .tc-val{font-size:1.6rem;}
+.tc-sub{font-size:.69rem;color:var(--acc2);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+
+/* BUTTONS */
+.acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.btn{padding:9px 16px;border-radius:var(--r);font-family:'IBM Plex Mono',monospace;font-size:.74rem;cursor:pointer;font-weight:600;border:1.5px solid transparent;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.btn-snap{background:var(--grn);color:#000;border-color:var(--grn);}
+.btn-snap:hover{background:#56d364;}
+.btn-print{background:transparent;border-color:var(--blu);color:var(--blu);}
+.btn-print:hover{background:rgba(88,166,255,.1);}
+.btn-del{background:transparent;border-color:var(--red);color:var(--red);}
+.btn-del:hover{background:rgba(255,76,76,.08);}
+.btn-out{background:transparent;border-color:var(--bdr);color:var(--mut);}
+.btn-out:hover{border-color:var(--acc2);color:var(--acc2);}
+
+/* HISTORY CARDS */
+.hist-wrap{display:flex;flex-direction:column;gap:12px;}
+.hist-empty{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--mut);text-align:center;padding:40px 20px;}
+.hcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;}
+.hcard-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;gap:10px;flex-wrap:wrap;}
+.hcard-head:hover{background:rgba(240,165,0,.04);}
+.hcard-date{font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:var(--acc);font-weight:600;}
+.hcard-note{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--mut);}
+.hcard-del{background:transparent;border:none;color:var(--mut);cursor:pointer;font-size:.9rem;padding:2px 6px;border-radius:3px;}
+.hcard-del:hover{color:var(--red);}
+.hcard-body{display:none;padding:0 14px 14px;border-top:1px solid var(--bdr);}
+.hcard-body.open{display:block;}
+.hcard-bftabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0 8px;}
+.hbftab{background:var(--bg);border:1px solid var(--bdr);color:var(--mut);font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:4px 10px;border-radius:4px;cursor:pointer;}
+.hbftab:hover{border-color:var(--acc);color:var(--acc);}
+.hbftab.active{background:var(--acc);border-color:var(--acc);color:#000;}
+.hcard-content{margin-top:6px;}
+
+/* HIST TABLE */
+.htbl{width:100%;border-collapse:collapse;font-size:.74rem;margin-top:8px;}
+.htbl th{background:var(--bg);color:var(--mut);font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:1px solid var(--bdr);}
+.htbl th.r,.htbl td.r{text-align:right;}
+.htbl tbody tr{border-bottom:1px solid var(--bdr);}
+.htbl tbody tr:nth-child(even){background:rgba(255,255,255,.02);}
+.htbl td{padding:6px 8px;font-family:'IBM Plex Mono',monospace;color:var(--txt);}
+.htbl td.a{text-align:right;color:var(--acc2);font-weight:600;}
+.htbl td.z{text-align:right;color:var(--bdr);}
+.htbl tfoot td{font-weight:700;background:var(--bg);border-top:1.5px solid var(--acc);padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:.74rem;}
+.htbl tfoot td.r{text-align:right;color:var(--acc);}
+.h-totrow{display:flex;justify-content:space-between;align-items:center;background:rgba(240,165,0,.07);border:1px solid rgba(240,165,0,.2);border-radius:4px;padding:8px 12px;margin-top:8px;}
+.h-totrow span:first-child{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--mut);}
+.h-totrow span:last-child{font-family:'IBM Plex Mono',monospace;font-size:.9rem;color:var(--acc);font-weight:700;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;align-items:center;justify-content:center;padding:14px;}
+.overlay.open{display:flex;}
+.modal{background:var(--sur);border:1.5px solid var(--acc);border-radius:10px;padding:22px 24px;width:100%;max-width:390px;max-height:90vh;overflow-y:auto;}
+.modal h2{font-family:'IBM Plex Mono',monospace;color:var(--acc);margin-bottom:16px;font-size:.95rem;}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.fg label{font-size:.66rem;color:var(--mut);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;}
+.fg input{background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:.82rem;padding:7px 10px;outline:none;transition:border .15s;}
+.fg input:focus{border-color:var(--acc);}
+.fg input.af{color:var(--acc);border-color:rgba(240,165,0,.3);background:rgba(240,165,0,.05);}
+.msec{font-size:.64rem;color:var(--mut);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--bdr);}
+.modal-acts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;}
+
+/* LOADING */
+.ls{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.ls.off{display:none;}
+.spin{width:34px;height:34px;border:3px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.ls p{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--mut);}
+
+/* TOAST */
+.toast{position:fixed;bottom:16px;right:16px;background:var(--acc2);color:#000;font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:9px 15px;border-radius:5px;font-weight:700;opacity:0;transform:translateY(6px);transition:all .2s;z-index:999;pointer-events:none;max-width:260px;}
+.toast.on{opacity:1;transform:translateY(0);}
+.toast.err{background:var(--red);color:#fff;}
+
+/* MOBILE */
+@media(max-width:700px){
+  .gpanel{position:fixed;left:0;top:0;bottom:0;z-index:300;transform:translateX(-100%);width:272px;padding-top:58px;box-shadow:6px 0 28px rgba(0,0,0,.6);}
+  .gpanel.open{transform:translateX(0);}
+  .dc{display:flex!important;position:absolute;top:12px;right:12px;background:transparent;border:none;color:var(--mut);font-size:1.3rem;cursor:pointer;}
+  .layout{flex-direction:column;}
+  .sheet{padding:14px 10px;}
+  .tot-grid{grid-template-columns:1fr;}
+  .tc.grand{grid-column:unset;}
+  table{min-width:390px;}
+  .htbl{min-width:340px;}
+  .bf-title{font-size:1.5rem;}
+  .btn{padding:8px 12px;font-size:.7rem;}
+}
+@media(min-width:701px){
+  .dc,.mob-only{display:none!important;}
+}
+
+/* PRINT */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .hdr,.gpanel,.acts,.overlay,.ls,.toast,.tab-row,.hist-wrap{display:none!important;}
+  body{background:#fff;color:#000;font-size:10.5pt;}
+  .layout,.sheet{display:block;padding:0;}
+  .sheet-top{margin-bottom:10px;}
+  .bf-title{color:#000;font-size:15pt;font-family:Arial,sans-serif;}
+  .chip{background:none;border:none;color:#444;font-size:8.5pt;}
+  .slabel{color:#000;border-left:3px solid #000;font-size:8pt;margin:10px 0 5px;}
+  .tw{border:1px solid #aaa;overflow:visible;}
+  table{min-width:unset;font-size:9pt;}
+  thead th{background:#eee!important;color:#000;padding:5px 8px;font-size:8pt;}
+  tbody td{padding:5px 8px;}
+  tbody tr:nth-child(even){background:#f7f7f7!important;}
+  tr.local-r{background:#fffbe8!important;}
+  td.amt{color:#000;font-weight:bold;}
+  td.zero{color:#bbb;}
+  tfoot td{background:#eee!important;font-size:9pt;padding:5px 8px;}
+  .ec,.ec.ro{border:1px solid #ccc;background:#fff;font-size:9pt;color:#000;width:auto;padding:2px 4px;}
+  .ec.ro{font-weight:bold;}
+  .tot-grid{display:table;width:100%;margin-top:10px;}
+  .tc{display:table-cell;border:1px solid #aaa;padding:7px 10px;background:#fff!important;vertical-align:top;}
+  .tc.grand{display:block;border:2px solid #000;background:#f5f5f5!important;margin-top:8px;}
+  .tc-lbl{font-size:8pt;color:#555;}
+  .tc-val{font-size:12pt;color:#000;}
+  .tc.grand .tc-val{font-size:14pt;}
+  .tc-sub{font-size:8pt;color:#555;}
+  .print-hdr{display:block!important;text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;}
+  .print-hdr h1{font-size:14pt;font-family:Arial,sans-serif;}
+  .print-hdr p{font-size:9pt;color:#555;margin-top:4px;}
+  #histView{display:none!important;}
+}
+.print-hdr{display:none;}
+
+/* LOGIN SCREEN */
+.login-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-screen.off{display:none;}
+.login-box{background:var(--sur);border:1.5px solid var(--acc);border-radius:12px;padding:36px 32px;width:100%;max-width:360px;}
+.login-logo{font-family:'IBM Plex Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--acc);text-align:center;margin-bottom:6px;letter-spacing:.06em;}
+.login-sub{font-size:.75rem;color:var(--mut);text-align:center;font-family:'IBM Plex Mono',monospace;margin-bottom:28px;}
+.lf{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+.lf label{font-size:.68rem;color:var(--mut);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;}
+.lf input{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:.9rem;padding:10px 12px;outline:none;transition:border .15s;width:100%;}
+.lf input:focus{border-color:var(--acc);}
+.login-btn{width:100%;padding:11px;background:var(--acc);color:#000;border:none;border-radius:var(--r);font-family:'IBM Plex Mono',monospace;font-size:.85rem;font-weight:700;cursor:pointer;margin-top:6px;transition:background .15s;}
+.login-btn:hover{background:#ffd166;}
+.login-err{font-size:.72rem;color:var(--red);font-family:'IBM Plex Mono',monospace;text-align:center;margin-top:10px;min-height:18px;}
+
+/* ADMIN PANEL */
+.admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:450;align-items:center;justify-content:center;padding:14px;}
+.admin-overlay.open{display:flex;}
+.admin-modal{background:var(--sur);border:1.5px solid var(--acc);border-radius:10px;padding:22px 24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;}
+.admin-modal h2{font-family:'IBM Plex Mono',monospace;color:var(--acc);margin-bottom:16px;font-size:.95rem;}
+.user-row{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);padding:8px 12px;margin-bottom:8px;}
+.user-row .uname{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--txt);flex:1;}
+.user-row .urole{font-size:.65rem;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:3px;}
+.urole.admin{background:rgba(240,165,0,.15);color:var(--acc);}
+.urole.viewer{background:rgba(0,200,160,.1);color:var(--acc2);}
+.udel{background:transparent;border:none;color:var(--mut);cursor:pointer;font-size:.85rem;padding:2px 5px;}
+.udel:hover{color:var(--red);}
+.add-user-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr);}
+.add-user-form input,.add-user-form select{background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:.78rem;padding:7px 9px;outline:none;}
+.add-user-form input:focus{border-color:var(--acc);}
+.add-user-form select{cursor:pointer;}
+
+/* USER INFO in header */
+.user-chip{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--mut);}
+.user-chip b{color:var(--acc2);}
+
+</style>
+</head>
+<body>
+
+<div class="ls off" id="ls"><div class="spin"></div><p>Loading…</p></div>
+
+<div class="hdr">
+  <div class="logo">BF COSTING</div>
+  <div class="nav-wrap">
+    <button class="hbtn mob-only" onclick="toggleDrawer()">⚙</button>
+    <div id="bfNav"></div>
+    <div id="adminBtns" style="display:none;display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="hbtn green" onclick="openAdd()">+ Add BF</button>
+      <button class="hbtn" onclick="takeSnapshot()" style="border-color:var(--grn);color:var(--grn);">💾 Save Snapshot</button>
+      <button class="hbtn" onclick="openAdmin()" style="border-color:var(--acc);color:var(--acc);" id="adminBtn">👤 Users</button>
+    </div>
+    <div id="viewerBtns" style="display:none;gap:6px;flex-wrap:wrap;">
+      <button class="hbtn" onclick="doPrint()" style="border-color:var(--blu);color:var(--blu);">🖨 Print</button>
+      <button class="hbtn" onclick="doCSV()">⬇ CSV</button>
+    </div>
+    <div class="user-chip" id="userChip" style="display:none;">
+      <span>👤 <b id="userChipName"></b></span>
+      <button class="hbtn" id="installBtn" onclick="triggerInstall()" style="display:none;padding:4px 8px;font-size:.68rem;border-color:var(--acc2);color:var(--acc2);">⬇ Install App</button>
+      <button class="hbtn" onclick="doLogout()" style="padding:4px 8px;font-size:.68rem;">Logout</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SETTINGS PANEL -->
+  <div class="gpanel" id="gpanel">
+    <button class="dc" style="display:none" onclick="closeDrawer()">✕</button>
+    <h3>Settings</h3>
+
+    <div class="psect">
+      <h4>Production & Yield</h4>
+      <div class="gf">
+        <label>Production</label>
+        <input type="number" id="gProd" value="1000">
+        <span class="u">kg</span>
+      </div>
+      <div class="gf">
+        <label>Yield</label>
+        <input type="number" id="gYield" value="93" step="0.1">
+        <span class="u">%</span>
+      </div>
+      <div class="raw-disp">
+        <span>Raw Material Input</span>
+        <span id="gRawDisp">—</span>
+      </div>
+    </div>
+
+    <div class="psect">
+      <h4>Material Rates (₹/kg)</h4>
+      <div id="panelRates"></div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <input type="text" id="newMatName" placeholder="New material name" onkeydown="if(event.key==='Enter')addMaterial()"
+          style="flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:.73rem;padding:5px 8px;outline:none;">
+        <button class="btn btn-snap" style="padding:5px 10px;font-size:.72rem;" onclick="addMaterial()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="psect">
+      <h4>Fixed Costs (₹)</h4>
+      <div id="panelFixed"></div>
+    </div>
+
+    <button class="btn btn-snap" style="width:100%;justify-content:center;margin-top:4px;" onclick="saveSettings()">✓ Apply Settings</button>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="sheet" id="sheetArea" onclick="bgClick(event)">
+
+    <!-- TABS -->
+    <div class="tab-row">
+      <button class="tab active" id="tabSheet" onclick="switchTab('sheet')">Current Sheet</button>
+      <button class="tab" id="tabHist" onclick="switchTab('hist')">📋 History</button>
+    </div>
+
+    <!-- CURRENT SHEET VIEW -->
+    <div id="sheetView">
+      <div class="print-hdr"><h1 id="ph_title"></h1><p id="ph_meta"></p></div>
+
+      <div class="sheet-top">
+        <div>
+          <div class="bf-title" id="bfTitle"></div>
+          <div class="bf-chips">
+            <div class="chip">Yield <b id="mYield"></b>%</div>
+            <div class="chip">Production <b id="mProd"></b> kg</div>
+            <div class="chip">Raw Input <b id="mRaw"></b> kg</div>
+          </div>
+        </div>
+        <button class="btn btn-del" onclick="deleteCurrent()" style="padding:6px 12px;font-size:.7rem;">✕ Delete BF</button>
+      </div>
+
+      <div class="slabel">Raw Material</div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Material</th><th class="r">%</th><th class="r">Kgs</th><th class="r">Rate ₹</th><th class="r">Amount ₹</th></tr>
+          </thead>
+          <tbody id="rawBody"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">Total</td>
+              <td class="r" id="ftKg" style="color:var(--acc2)"></td>
+              <td></td>
+              <td class="r" id="ftRaw"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="slabel">Conversion Cost</div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Item</th><th class="r">Qty</th><th class="r">Rate ₹</th><th class="r">Amount ₹</th></tr>
+          </thead>
+          <tbody id="convBody"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Conversion Total</td>
+              <td class="r" id="ftConv"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="tot-grid">
+        <div class="tc"><div class="tc-lbl">Raw Material</div><div class="tc-val" id="totRaw"></div><div class="tc-sub" id="totRawKg"></div></div>
+        <div class="tc"><div class="tc-lbl">Conversion</div><div class="tc-val" id="totConv"></div><div class="tc-sub" id="totConvKg"></div></div>
+        <div class="tc grand"><div class="tc-lbl">Grand Total</div><div class="tc-val" id="totGrand"></div><div class="tc-sub" id="totGrandKg"></div></div>
+      </div>
+
+      <div class="acts">
+        <button class="btn btn-snap" onclick="takeSnapshot()">💾 Save Snapshot</button>
+        <button class="btn btn-print" onclick="doPrint()">🖨 Print</button>
+        <button class="btn btn-out" onclick="doCSV()">⬇ CSV</button>
+      </div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="histView" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--mut);">All saved snapshots — newest first</div>
+        <button class="btn btn-del" onclick="clearAllHistory()" style="padding:5px 12px;font-size:.7rem;">🗑 Clear All</button>
+      </div>
+      <div class="hist-wrap" id="histList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD BF MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>Add BF Grade</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="fg">
+        <label>BF Number</label>
+        <input type="number" id="mBF" placeholder="e.g. 26">
+      </div>
+      <div class="fg">
+        <label>Grade Label</label>
+        <input type="text" id="mLabel" placeholder="e.g. Kraft, White">
+      </div>
+    </div>
+    <div class="msec">Raw Material %</div>
+    <div id="mRawFields"></div>
+    <div class="fg">
+      <label>Local % (auto)</label>
+      <input type="number" id="mLocal" class="af" readonly>
+    </div>
+    <div class="modal-acts">
+      <button class="btn btn-out" onclick="closeOverlay()">Cancel</button>
+      <button class="btn btn-snap" onclick="confirmAddBF()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- SNAPSHOT NOTE MODAL -->
+<div class="overlay" id="snapOverlay">
+  <div class="modal" style="max-width:340px;">
+    <h2>Save Snapshot</h2>
+    <div class="fg">
+      <label>Note (optional)</label>
+      <input type="text" id="snapNote" placeholder="e.g. Rate revision, Dec 2024">
+    </div>
+    <div class="modal-acts">
+      <button class="btn btn-out" onclick="closeSnapOverlay()">Cancel</button>
+      <button class="btn btn-snap" onclick="confirmSnapshot()">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">BF COSTING</div>
+    <div class="login-sub">Sign in to continue</div>
+    <div class="lf">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="lf">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')window.doLogin&&window.doLogin()">
+    </div>
+    <button class="login-btn" id="loginBtn">Login</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-modal">
+    <h2>👤 User Management</h2>
+    <div id="userList"></div>
+    <div class="add-user-form">
+      <input type="text" id="newUsername" placeholder="Username">
+      <input type="password" id="newPassword" placeholder="Password">
+      <select id="newRole">
+        <option value="viewer">Viewer</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button class="btn btn-snap" onclick="addUser()" style="font-size:.76rem;">+ Add User</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-out" onclick="closeAdmin()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+const _app = initializeApp({
+  apiKey:"AIzaSyAicJ5AIeDk1_2Bolg5a3HXn4gs_h5890U",
+  authDomain:"bf-rate.firebaseapp.com",
+  projectId:"bf-rate",
+  storageBucket:"bf-rate.firebasestorage.app",
+  messagingSenderId:"1046158219424",
+  appId:"1:1046158219424:web:fec99b9eb061e6c934d1c5"
+});
+const db = getFirestore(_app);
+
+// ── CONSTANTS ──────────────────────────────────────
+// OTHER is now dynamic — managed inside G.materials
+const FIXED = ['Maintanance','Man Power','Office Management'];
+const VAR   = ['Chemical','Packing','Electrical','Starch','Coal'];
+const FLAT  = ['Chemical','Packing'];
+
+// ── STATE ──────────────────────────────────────────
+let G = {
+  prod:1000, yield:93,
+  materials:['DSOCC','NDLKC','Shopping Bag','SMK','I.Box','98/2','Fruit Box'],
+  rates:{'DSOCC':25.50,'NDLKC':31.00,'Shopping Bag':34.00,'SMK':38.00,'I.Box':28.00,'98/2':17.00,'Fruit Box':26.00,'Local':17.20},
+  fixedConv:{'Maintanance':1000,'Man Power':1200,'Office Management':700}
+};
+function OTHER(){ return G.materials||['DSOCC','NDLKC','Shopping Bag','SMK','I.Box','98/2','Fruit Box']; }
+let BF = [];
+let cur = 0;
+let snapshots = []; // [{id, date, note, G, BF}]
+
+function rk(){ return +(G.prod/(G.yield/100)).toFixed(2); }
+function lp(d){ return Math.max(0,100-OTHER().reduce((s,m)=>s+(d.raw[m]||0),0)); }
+function fmt(n){ return Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(ts){ const d=new Date(ts); return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+
+// ── FIREBASE ───────────────────────────────────────
+async function loadAll(){
+  try{
+    const gs = await getDoc(doc(db,'costing','global'));
+    if(gs.exists()) G = gs.data().value;
+    const bs = await getDoc(doc(db,'costing','bfdata'));
+    if(bs.exists()) BF = bs.data().value;
+  } catch(e){ console.warn('load settings:',e); }
+  if(!BF.length) BF = defaultBF();
+
+  // load snapshots
+  try{
+    const q = query(collection(db,'snapshots'), orderBy('ts','desc'));
+    const snap = await getDocs(q);
+    snapshots = snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e){ console.warn('load snapshots:',e); }
+}
+
+async function persistSettings(){
+  try{
+    await setDoc(doc(db,'costing','global'),{value:G});
+    await setDoc(doc(db,'costing','bfdata'),{value:BF});
+    return true;
+  } catch(e){ return false; }
+}
+
+function isBFUsed(d){
+  const hasRaw = OTHER().some(m=>(d.raw[m]||0)>0);
+  const hasConv = VAR.some(item=>{
+    const c=d.varConv[item]||{};
+    return FLAT.includes(item) ? (c.amt||0)>0 : ((c.qty||0)>0||(c.rate||0)>0);
+  });
+  return hasRaw || hasConv;
+}
+
+async function saveSnapshot(note){
+  const usedBF = BF.filter(isBFUsed);
+  if(!usedBF.length){ toast('No data entered in any BF yet','',true); return false; }
+  const entry = {
+    ts: Date.now(),
+    note: note||'',
+    G: JSON.parse(JSON.stringify(G)),
+    BF: JSON.parse(JSON.stringify(usedBF))
+  };
+  try{
+    const ref = await addDoc(collection(db,'snapshots'), entry);
+    entry.id = ref.id;
+    snapshots.unshift(entry);
+    return true;
+  } catch(e){ console.warn('snapshot:',e); return false; }
+}
+
+async function deleteSnapshot(id){
+  try{
+    await deleteDoc(doc(db,'snapshots',id));
+    snapshots = snapshots.filter(s=>s.id!==id);
+    renderHistory();
+  } catch(e){ toast('Delete failed','',true); }
+}
+
+async function clearAll(){
+  try{
+    for(const s of snapshots) await deleteDoc(doc(db,'snapshots',s.id));
+    snapshots=[];
+    renderHistory();
+    toast('History cleared');
+  } catch(e){ toast('Failed','',true); }
+}
+
+function defaultBF(){
+  return [
+    {bf:18,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:20,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:22,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:24,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:28,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}}
+  ];
+}
+
+// ── SETTINGS PANEL ─────────────────────────────────
+function renderPanel(){
+  document.getElementById('gProd').value  = G.prod;
+  document.getElementById('gYield').value = G.yield;
+  document.getElementById('gRawDisp').textContent = rk()+' kg';
+
+  const rEl=document.getElementById('panelRates'); rEl.innerHTML='';
+  [...OTHER(),'Local'].forEach(m=>{
+    const k=m.replace(/[\s\/]/g,'_');
+    const div=document.createElement('div');
+    div.className='gf';
+    div.innerHTML=`<label>${m}</label><input type="number" step="0.01" value="${G.rates[m]}"><span class="u">₹</span>`;
+    const inp=div.querySelector('input');
+    inp.oninput=()=>{ G.rates[m]=parseFloat(inp.value)||0; renderSheet(); };
+    rEl.appendChild(div);
+  });
+
+  const fEl=document.getElementById('panelFixed'); fEl.innerHTML='';
+  FIXED.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='gf';
+    div.innerHTML=`<label>${item}</label><input type="number" value="${G.fixedConv[item]}"><span class="u">₹</span>`;
+    const inp=div.querySelector('input');
+    inp.oninput=()=>{ G.fixedConv[item]=parseFloat(inp.value)||0; renderSheet(); };
+    fEl.appendChild(div);
+  });
+}
+
+function globalChanged(){
+  G.prod  = parseFloat(document.getElementById('gProd').value)||1000;
+  G.yield = parseFloat(document.getElementById('gYield').value)||93;
+  document.getElementById('gRawDisp').textContent = rk()+' kg';
+  renderSheet();
+}
+
+function addMaterial(){
+  const inp=document.getElementById('newMatName');
+  const name=inp.value.trim();
+  if(!name){ toast('Enter material name','',true); return; }
+  if([...OTHER(),'Local'].find(m=>m.toLowerCase()===name.toLowerCase())){
+    toast('Material already exists','',true); return;
+  }
+  if(!G.materials) G.materials=['DSOCC','NDLKC','Shopping Bag','SMK','I.Box','98/2','Fruit Box'];
+  G.materials.push(name);
+  G.rates[name]=0;
+  inp.value='';
+  // add to all BF
+  BF.forEach(d=>{ if(!d.raw[name]) d.raw[name]=0; });
+  persistSettings();
+  renderPanel();
+  renderSheet();
+  toast(name+' added');
+}
+
+function removeMaterial(name){
+  if(!confirm('Remove '+name+' from all BF?')) return;
+  G.materials=G.materials.filter(m=>m!==name);
+  delete G.rates[name];
+  BF.forEach(d=>{ delete d.raw[name]; if(d.grades) delete d.grades[name]; });
+  persistSettings();
+  renderPanel();
+  renderSheet();
+  toast(name+' removed');
+}
+
+async function saveSettings(){
+  const ok = await persistSettings();
+  toast(ok?'✓ Settings saved':'Save failed','',!ok);
+}
+
+// ── NAV ────────────────────────────────────────────
+function renderNav(){
+  const nav=document.getElementById('bfNav'); nav.innerHTML='';
+  BF.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='bfbtn'+(i===cur?' active':'');
+    b.textContent=d.bf+' BF'+(d.label?' · '+d.label:'');
+    b.onclick=()=>{ cur=i; renderNav(); renderSheet(); closeDrawer(); switchTab('sheet'); };
+    nav.appendChild(b);
+  });
+}
+
+// ── TABS ───────────────────────────────────────────
+function switchTab(t){
+  document.getElementById('sheetView').style.display = t==='sheet'?'block':'none';
+  document.getElementById('histView').style.display  = t==='hist'?'block':'none';
+  document.getElementById('tabSheet').classList.toggle('active', t==='sheet');
+  document.getElementById('tabHist').classList.toggle('active',  t==='hist');
+  if(t==='hist') renderHistory();
+}
+
+// ── SHEET ──────────────────────────────────────────
+function renderSheet(){
+  const d=BF[cur], k=rk(), l=lp(d);
+  document.getElementById('bfTitle').textContent = d.bf+' BF'+(d.label?' — '+d.label:'');
+  document.getElementById('mYield').textContent  = G.yield;
+  document.getElementById('mProd').textContent   = G.prod;
+  document.getElementById('mRaw').textContent    = k;
+
+  // RAW
+  const rb=document.getElementById('rawBody'); rb.innerHTML=''; let totRaw=0;
+  [...OTHER(),'Local'].forEach(mat=>{
+    const isL=mat==='Local', pct=isL?l:(d.raw[mat]||0);
+    const kgs=parseFloat(((pct/100)*k).toFixed(4)), rate=G.rates[mat]||0, amt=kgs*rate;
+    if(pct>0) totRaw+=amt;
+    const tr=document.createElement('tr');
+    if(isL) tr.className='local-r';
+    const pc=isL
+      ?`<input class="ec ro" type="number" value="${l.toFixed(2)}" readonly tabindex="-1">`
+      :`<input class="ec" type="number" min="0" max="100" step="0.5" value="${pct}" onchange="setPct('${mat}',this.value)">`;
+    tr.innerHTML=`<td>${mat}</td><td class="r">${pc}</td>
+      <td class="${pct===0?'zero':'r'}">${pct>0?fmt(kgs):'—'}</td>
+      <td class="r">${fmt(rate)}</td>
+      <td class="${pct>0?'amt':'zero'}">${pct>0?'₹ '+fmt(amt):'—'}</td>`;
+    rb.appendChild(tr);
+  });
+  document.getElementById('ftKg').textContent  = fmt(k);
+  document.getElementById('ftRaw').textContent = '₹ '+fmt(totRaw);
+
+  // CONV
+  const cb=document.getElementById('convBody'); cb.innerHTML=''; let totConv=0;
+  FIXED.forEach(item=>{
+    const a=G.fixedConv[item]||0; totConv+=a;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${item}</td><td class="zero">—</td><td class="zero">—</td><td class="amt">₹ ${fmt(a)}</td>`;
+    cb.appendChild(tr);
+  });
+  VAR.forEach(item=>{
+    const c=d.varConv[item]||{}, isF=FLAT.includes(item);
+    const a=isF?(c.amt||0):((c.qty||0)*(c.rate||0)); totConv+=a;
+    const tr=document.createElement('tr');
+    const qc=isF?`<span class="zero">—</span>`:`<input class="ec" type="number" min="0" step="1" value="${c.qty||0}" onchange="setVar('${item}','qty',this.value)">`;
+    const rc=isF?`<input class="ec" type="number" min="0" value="${c.amt||0}" onchange="setVarFlat('${item}',this.value)" style="width:72px;">`:`<input class="ec" type="number" min="0" step="0.01" value="${c.rate||0}" onchange="setVar('${item}','rate',this.value)">`;
+    tr.innerHTML=`<td>${item}</td><td class="r">${qc}</td><td class="r">${rc}</td><td class="amt">₹ ${fmt(a)}</td>`;
+    cb.appendChild(tr);
+  });
+  document.getElementById('ftConv').textContent='₹ '+fmt(totConv);
+  const grand=totRaw+totConv;
+  document.getElementById('totRaw').textContent   ='₹ '+fmt(totRaw);
+  document.getElementById('totRawKg').textContent ='₹ '+fmt(totRaw/G.prod)+' / kg';
+  document.getElementById('totConv').textContent  ='₹ '+fmt(totConv);
+  document.getElementById('totConvKg').textContent='₹ '+fmt(totConv/G.prod)+' / kg';
+  document.getElementById('totGrand').textContent ='₹ '+fmt(grand);
+  document.getElementById('totGrandKg').textContent='₹ '+fmt(grand/G.prod)+' / kg';
+}
+
+// ── HISTORY ────────────────────────────────────────
+function renderHistory(){
+  const el=document.getElementById('histList');
+  if(!snapshots.length){
+    el.innerHTML=`<div class="hist-empty">No snapshots saved yet.<br>Click "💾 Save Snapshot" to save a dated copy.</div>`;
+    return;
+  }
+  el.innerHTML='';
+  snapshots.forEach((s,si)=>{
+    const card=document.createElement('div');
+    card.className='hcard';
+    const bfTabs=s.BF.map((b,bi)=>`<button class="hbftab${bi===0?' active':''}" onclick="switchHBF(${si},${bi})">${b.bf} BF${b.label?' · '+b.label:''}</button>`).join('');
+    card.innerHTML=`
+      <div class="hcard-head" onclick="toggleHCard(${si})">
+        <div>
+          <div class="hcard-date">${fmtDate(s.ts)}</div>
+          ${s.note?`<div class="hcard-note">${s.note}</div>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--mut);">${s.BF.length} BF grade${s.BF.length!==1?'s':''}</span>
+          <button class="hcard-del" onclick="event.stopPropagation();delSnap('${s.id}')" title="Delete">🗑</button>
+        </div>
+      </div>
+      <div class="hcard-body" id="hcb_${si}">
+        <div class="hcard-bftabs" id="hbt_${si}">${bfTabs}</div>
+        <div class="hcard-content" id="hcc_${si}"></div>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+
+function toggleHCard(si){
+  const body=document.getElementById('hcb_'+si);
+  const isOpen=body.classList.toggle('open');
+  if(isOpen) renderHistBF(si,0);
+}
+
+function switchHBF(si,bi){
+  document.querySelectorAll(`#hbt_${si} .hbftab`).forEach((b,i)=>b.classList.toggle('active',i===bi));
+  renderHistBF(si,bi);
+}
+
+function renderHistBF(si,bi){
+  const s=snapshots[si], d=s.BF[bi], gS=s.G;
+  const k=+(gS.prod/(gS.yield/100)).toFixed(2);
+  const l=Math.max(0,100-(s.G.materials||OTHER()).reduce((sum,m)=>sum+(d.raw[m]||0),0));
+  let totR=0, totC=0;
+
+  let rRows='';
+  [...OTHER(),'Local'].forEach(mat=>{
+    const isL=mat==='Local', pct=isL?l:(d.raw[mat]||0);
+    if(pct===0) return; // skip unused materials
+    const kgs=parseFloat(((pct/100)*k).toFixed(4)), rate=gS.rates[mat]||0, amt=kgs*rate;
+    totR+=amt;
+    rRows+=`<tr>
+      <td>${mat}</td>
+      <td class="r">${pct.toFixed(2)}%</td>
+      <td class="r">${fmt(kgs)}</td>
+      <td class="r">${fmt(rate)}</td>
+      <td class="a">₹ ${fmt(amt)}</td>
+    </tr>`;
+  });
+
+  let cRows='';
+  FIXED.forEach(item=>{
+    const a=gS.fixedConv[item]||0;
+    if(a===0) return; // skip zero fixed costs
+    totC+=a;
+    cRows+=`<tr><td>${item}</td><td class="z">—</td><td class="z">—</td><td class="a">₹ ${fmt(a)}</td></tr>`;
+  });
+  VAR.forEach(item=>{
+    const c=d.varConv[item]||{}, isF=FLAT.includes(item);
+    const a=isF?(c.amt||0):((c.qty||0)*(c.rate||0));
+    if(a===0) return; // skip zero variable costs
+    totC+=a;
+    cRows+=`<tr>
+      <td>${item}</td>
+      <td class="r">${isF?'—':c.qty}</td>
+      <td class="r">${isF?'₹ '+fmt(c.amt||0):fmt(c.rate||0)}</td>
+      <td class="a">₹ ${fmt(a)}</td>
+    </tr>`;
+  });
+
+  const grand=totR+totC;
+  document.getElementById('hcc_'+si).innerHTML=`
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--mut);margin-bottom:6px;">
+      Yield ${gS.yield}% &nbsp;|&nbsp; Production ${gS.prod} kg &nbsp;|&nbsp; Raw Input ${k} kg
+    </div>
+    <div class="tw" style="margin-bottom:8px;">
+      <table class="htbl">
+        <thead><tr><th>Material</th><th class="r">%</th><th class="r">Kgs</th><th class="r">Rate ₹</th><th class="r">Amount ₹</th></tr></thead>
+        <tbody>${rRows}</tbody>
+        <tfoot><tr><td colspan="2">Total</td><td class="r" style="color:var(--acc2)">${fmt(k)}</td><td></td><td class="r">₹ ${fmt(totR)}</td></tr></tfoot>
+      </table>
+    </div>
+    <div class="tw">
+      <table class="htbl">
+        <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Rate ₹</th><th class="r">Amount ₹</th></tr></thead>
+        <tbody>${cRows}</tbody>
+        <tfoot><tr><td colspan="3">Conversion Total</td><td class="r">₹ ${fmt(totC)}</td></tr></tfoot>
+      </table>
+    </div>
+    <div class="h-totrow"><span>Grand Total</span><span>₹ ${fmt(grand)} &nbsp;(₹ ${fmt(grand/gS.prod)}/kg)</span></div>`;
+}
+
+// ── SNAPSHOT ───────────────────────────────────────
+function takeSnapshot(){
+  document.getElementById('snapNote').value='';
+  document.getElementById('snapOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('snapNote').focus(),100);
+}
+
+async function confirmSnapshot(){
+  const note=document.getElementById('snapNote').value.trim();
+  closeSnapOverlay();
+  // always save current live state to Firebase first
+  await persistSettings();
+  const ok=await saveSnapshot(note);
+  toast(ok?'✓ Snapshot saved':'Snapshot failed','',!ok);
+  if(ok && document.getElementById('histView').style.display!=='none') renderHistory();
+}
+
+function closeSnapOverlay(){ document.getElementById('snapOverlay').classList.remove('open'); }
+
+// ── EDITS ──────────────────────────────────────────
+function setPct(mat,val){
+  BF[cur].raw[mat]=parseFloat(val)||0;
+  if(lp(BF[cur])<0){ BF[cur].raw[mat]=0; toast('Total exceeds 100%','',true); }
+  renderSheet();
+  persistSettings();
+}
+function setVar(item,field,val){
+  BF[cur].varConv[item][field]=parseFloat(val)||0;
+  renderSheet(); persistSettings();
+}
+function setVarFlat(item,val){
+  BF[cur].varConv[item].amt=parseFloat(val)||0;
+  renderSheet(); persistSettings();
+}
+function setGrade(mat,val){
+  if(!BF[cur].grades) BF[cur].grades={};
+  BF[cur].grades[mat]=val.trim();
+  persistSettings();
+}
+
+// ── ADD / DELETE BF ────────────────────────────────
+function openAdd(){
+  document.getElementById('mBF').value='';
+  document.getElementById('mLabel').value='';
+  const mf=document.getElementById('mRawFields'); mf.innerHTML='';
+  OTHER().forEach(m=>{
+    const k=m.replace(/[\s\/]/g,'_');
+    mf.innerHTML+=`<div class="fg"><label>${m} %</label>
+      <input type="number" id="mp_${k}" value="0" min="0" max="100" step="0.5" oninput="calcML()"></div>`;
+  });
+  document.getElementById('mLocal').value='100.00';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function calcML(){
+  const sum=OTHER().reduce((s,m)=>{
+    const k=m.replace(/[\s\/]/g,'_');
+    return s+(parseFloat(document.getElementById('mp_'+k)?.value)||0);
+  },0);
+  document.getElementById('mLocal').value=Math.max(0,100-sum).toFixed(2);
+}
+
+function closeOverlay(){ document.getElementById('overlay').classList.remove('open'); }
+
+async function confirmAddBF(){
+  const n=parseInt(document.getElementById('mBF').value);
+  const label=(document.getElementById('mLabel').value||'').trim();
+  if(!n){ toast('Enter BF number','',true); return; }
+  if(BF.find(d=>d.bf===n)){ toast('BF '+n+' already exists','',true); return; }
+  const raw={}; let sum=0;
+  OTHER().forEach(m=>{ const k=m.replace(/[\s\/]/g,'_'); raw[m]=parseFloat(document.getElementById('mp_'+k).value)||0; sum+=raw[m]; });
+  if(sum>100){ toast('Total exceeds 100%','',true); return; }
+  BF.push({bf:n,label,raw,varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}});
+  BF.sort((a,b)=>a.bf-b.bf);
+  cur=BF.findIndex(d=>d.bf===n);
+  closeOverlay();
+  await persistSettings();
+  renderNav(); renderSheet();
+  toast('BF '+n+' added');
+}
+
+async function deleteCurrent(){
+  if(BF.length===1){ toast('Cannot delete last BF','',true); return; }
+  if(!confirm('Delete BF '+BF[cur].bf+'?')) return;
+  BF.splice(cur,1);
+  cur=Math.max(0,cur-1);
+  await persistSettings();
+  renderNav(); renderSheet();
+  toast('Deleted');
+}
+
+function delSnap(id){ if(confirm('Delete this snapshot?')) deleteSnapshot(id); }
+function clearAllHistory(){ if(confirm('Delete all history?')) clearAll(); }
+
+// ── PRINT ──────────────────────────────────────────
+function doPrint(){
+  const d=BF[cur];
+  document.getElementById('ph_title').textContent=d.bf+' BF — Costing Sheet';
+  document.getElementById('ph_meta').textContent='Yield: '+G.yield+'%   |   Production: '+G.prod+' kg   |   Raw Input: '+rk()+' kg';
+  window.print();
+}
+
+// ── CSV ────────────────────────────────────────────
+function doCSV(){
+  const d=BF[cur], k=rk(), l=lp(d);
+  let c=`BF,${d.bf}\nYield,${G.yield}%\nProduction,${G.prod}kg\nRaw Input,${k}kg\n\nMaterial,%,Kgs,Rate,Amount\n`;
+  [...OTHER(),'Local'].forEach(m=>{
+    const p=m==='Local'?l:(d.raw[m]||0), kg=(p/100)*k, rt=G.rates[m];
+    c+=`${m},${p.toFixed(2)}%,${kg.toFixed(2)},${rt},${(kg*rt).toFixed(2)}\n`;
+  });
+  c+='\nItem,Qty,Rate,Amount\n';
+  FIXED.forEach(i=>{ c+=`${i},—,—,${G.fixedConv[i].toFixed(2)}\n`; });
+  VAR.forEach(i=>{
+    const v=d.varConv[i],fl=FLAT.includes(i),a=fl?(v.amt||0):((v.qty||0)*(v.rate||0));
+    c+=`${i},${fl?'—':v.qty},${fl?v.amt:v.rate},${a.toFixed(2)}\n`;
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));
+  a.download=`BF${d.bf}_Costing.csv`; a.click();
+}
+
+// ── DRAWER ─────────────────────────────────────────
+function toggleDrawer(){ document.getElementById('gpanel').classList.toggle('open'); }
+function closeDrawer(){  document.getElementById('gpanel').classList.remove('open'); }
+function bgClick(e){ const gp=document.getElementById('gpanel'); if(gp.classList.contains('open')&&!gp.contains(e.target)) closeDrawer(); }
+
+// ── TOAST ──────────────────────────────────────────
+function toast(msg,_='',isErr=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast on'+(isErr?' err':'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2400);
+}
+
+
+// ── AUTH ───────────────────────────────────────────
+let currentUser = null; // {username, role}
+
+async function doLogin(){
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  const btn = document.querySelector('.login-btn');
+  btn.textContent = 'Please wait...';
+  btn.disabled = true;
+
+  if(!username || !password){
+    errEl.textContent = 'Enter username and password';
+    btn.textContent = 'Login'; btn.disabled = false; return;
+  }
+
+  try{
+    const hash = await hashStr(password);
+
+    // Try to get user document
+    let snap;
+    try{
+      snap = await getDoc(doc(db,'users', username));
+    } catch(fetchErr){
+      // Firebase rules blocking or network error — try creating admin first
+      console.warn('Fetch error:', fetchErr.message);
+      if(username === 'admin'){
+        try{
+          await setDoc(doc(db,'users','admin'),{password: await hashStr('admin123'), role:'admin'});
+          snap = await getDoc(doc(db,'users','admin'));
+        } catch(createErr){
+          errEl.textContent = 'Firebase error: ' + createErr.message;
+          btn.textContent = 'Login'; btn.disabled = false; return;
+        }
+      } else {
+        errEl.textContent = 'Connection error: ' + fetchErr.message;
+        btn.textContent = 'Login'; btn.disabled = false; return;
+      }
+    }
+
+    // First time ever — no users collection, create admin
+    if(!snap || !snap.exists()){
+      if(username === 'admin' && password === 'admin123'){
+        await setDoc(doc(db,'users','admin'),{password: await hashStr('admin123'), role:'admin'});
+        currentUser = {username:'admin', role:'admin'};
+        sessionStorage.setItem('bfc_user', JSON.stringify(currentUser));
+        document.getElementById('loginScreen').style.display = 'none';
+        showApp();
+        return;
+      }
+      errEl.textContent = 'Invalid username or password';
+      btn.textContent = 'Login'; btn.disabled = false; return;
+    }
+
+    const data = snap.data();
+    if(hash !== data.password){
+      errEl.textContent = 'Invalid username or password';
+      btn.textContent = 'Login'; btn.disabled = false; return;
+    }
+
+    currentUser = { username, role: data.role };
+    sessionStorage.setItem('bfc_user', JSON.stringify(currentUser));
+    document.getElementById('loginScreen').style.display = 'none';
+    showApp();
+
+  } catch(e){
+    console.error('Login error:', e);
+    errEl.textContent = 'Error: ' + e.message;
+    btn.textContent = 'Login'; btn.disabled = false;
+  }
+}
+
+function doLogout(){
+  if(!confirm('Logout?')) return;
+  currentUser = null;
+  sessionStorage.removeItem('bfc_user');
+  location.reload();
+}
+
+async function hashStr(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function showApp(){
+  document.getElementById('loginScreen').classList.add('off');
+  document.getElementById('userChip').style.display = 'flex';
+  document.getElementById('userChipName').textContent = currentUser.username;
+
+  if(currentUser.role === 'admin'){
+    document.getElementById('adminBtns').style.display = 'flex';
+    document.getElementById('viewerBtns').style.display = 'none';
+    // settings panel visible
+    document.getElementById('gpanel').style.pointerEvents = 'auto';
+    document.getElementById('gpanel').style.opacity = '1';
+  } else {
+    document.getElementById('adminBtns').style.display = 'none';
+    document.getElementById('viewerBtns').style.display = 'flex';
+    // lock settings panel for viewers
+    document.getElementById('gpanel').style.pointerEvents = 'none';
+    document.getElementById('gpanel').style.opacity = '.5';
+    // hide delete button
+    document.querySelectorAll('.btn-del').forEach(b=>b.style.display='none');
+    // hide acts save/delete buttons
+    document.querySelectorAll('.btn-snap,.btn-del').forEach(b=>b.style.display='none');
+  }
+
+  // show brief loading while fetching data
+  document.getElementById('ls').classList.remove('off');
+  loadAll().then(()=>{
+    document.getElementById('ls').classList.add('off');
+    document.getElementById('gProd').addEventListener('input', globalChanged);
+    document.getElementById('gYield').addEventListener('input', globalChanged);
+    renderPanel();
+    renderNav();
+    renderSheet();
+    // create default admin in background if needed
+    hashStr('admin123').then(hash=>{
+      getDoc(doc(db,'users','admin')).then(s=>{
+        if(!s.exists()) setDoc(doc(db,'users','admin'),{password:hash,role:'admin'});
+      }).catch(()=>{});
+    });
+  }).catch(e=>{
+    document.getElementById('ls').classList.add('off');
+    toast('Failed to load data. Check connection.','',true);
+  });
+}
+
+// ── USER MANAGEMENT (admin only) ───────────────────
+function openAdmin(){
+  renderUserList();
+  document.getElementById('adminOverlay').classList.add('open');
+}
+function closeAdmin(){ document.getElementById('adminOverlay').classList.remove('open'); }
+
+async function renderUserList(){
+  const el = document.getElementById('userList');
+  el.innerHTML = '<div style="font-family:monospace;font-size:.7rem;color:#7d8590;margin-bottom:10px;">Registered Users</div>';
+  try{
+    const snap = await getDocs(collection(db,'users'));
+    snap.forEach(d=>{
+      const u = d.data();
+      const row = document.createElement('div');
+      row.className = 'user-row';
+      row.innerHTML = `
+        <span class="uname">${d.id}</span>
+        <span class="urole ${u.role}">${u.role}</span>
+        ${d.id !== currentUser.username ? `<button class="udel" onclick="deleteUser('${d.id}')" title="Delete">✕</button>` : '<span style="width:24px;"></span>'}`;
+      el.appendChild(row);
+    });
+  } catch(e){ el.innerHTML += '<div style="color:var(--red);font-size:.75rem;">Failed to load users</div>'; }
+}
+
+async function addUser(){
+  const username = document.getElementById('newUsername').value.trim();
+  const password = document.getElementById('newPassword').value;
+  const role     = document.getElementById('newRole').value;
+  if(!username || !password){ toast('Enter username and password','',true); return; }
+  try{
+    const hash = await hashStr(password);
+    await setDoc(doc(db,'users', username), { password: hash, role });
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newPassword').value = '';
+    renderUserList();
+    toast('User '+username+' added');
+  } catch(e){ toast('Failed to add user','',true); }
+}
+
+async function deleteUser(username){
+  if(!confirm('Delete user '+username+'?')) return;
+  try{
+    await deleteDoc(doc(db,'users', username));
+    renderUserList();
+    toast(username+' deleted');
+  } catch(e){ toast('Failed','',true); }
+}
+
+// ── EXPOSE TO WINDOW ───────────────────────────────
+window.globalChanged   = globalChanged;
+window.saveSettings    = saveSettings;
+window.takeSnapshot    = takeSnapshot;
+window.confirmSnapshot = confirmSnapshot;
+window.closeSnapOverlay= closeSnapOverlay;
+window.openAdd         = openAdd;
+window.closeOverlay    = closeOverlay;
+window.confirmAddBF    = confirmAddBF;
+window.calcML          = calcML;
+window.deleteCurrent   = deleteCurrent;
+window.doPrint         = doPrint;
+window.doCSV           = doCSV;
+window.toggleDrawer    = toggleDrawer;
+window.closeDrawer     = closeDrawer;
+window.bgClick         = bgClick;
+window.setPct          = setPct;
+window.setVar          = setVar;
+window.setVarFlat      = setVarFlat;
+window.setGrade        = setGrade;
+window.addMaterial     = addMaterial;
+window.removeMaterial  = removeMaterial;
+window.switchTab       = switchTab;
+window.toggleHCard     = toggleHCard;
+window.switchHBF       = switchHBF;
+window.delSnap         = delSnap;
+window.clearAllHistory = clearAllHistory;
+window.doLogin         = doLogin;
+window.doLogout        = doLogout;
+window.openAdmin       = openAdmin;
+window.closeAdmin      = closeAdmin;
+window.addUser         = addUser;
+window.deleteUser      = deleteUser;
+
+// ── INIT ───────────────────────────────────────────
+function init(){
+  // Check session — if logged in skip login screen
+  const saved = sessionStorage.getItem('bfc_user');
+  if(saved){
+    try{
+      currentUser = JSON.parse(saved);
+      document.getElementById('loginScreen').style.display = 'none';
+      showApp();
+      return;
+    } catch(e){
+      sessionStorage.removeItem('bfc_user');
+    }
+  }
+  // Show login screen — Firebase not called yet
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+init();
+
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeOverlay(); });
+
+// Wire login button properly inside module scope
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+document.getElementById('snapOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('snapOverlay')) closeSnapOverlay(); });
+document.getElementById('adminOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('adminOverlay')) closeAdmin(); });
+</script>
+
+<script>
+// ── SERVICE WORKER ──────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
+  });
+}
+
+// ── INSTALL PROMPT ──────────────────────────────────
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if(btn){ btn.style.display = 'inline-flex'; }
+});
+
+window.triggerInstall = function(){
+  if(installPrompt){
+    installPrompt.prompt();
+    installPrompt.userChoice.then(()=>{ installPrompt=null; });
+  }
+};
+</script>
+</body>
+</html>
