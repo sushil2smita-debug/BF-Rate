@@ -545,7 +545,7 @@ async function loadAll(){
   } catch(e){ console.warn('load settings:',e); }
   if(!BF.length) BF = defaultBF();
   // migrate old entries without GSM field
-  BF.forEach(d=>{ if(d.gsm===undefined||d.gsm===0) d.gsm=''; });
+  BF.forEach(d=>{ if(d.gsm===undefined) d.gsm=0; });
 
   // load snapshots
   try{
@@ -608,11 +608,11 @@ async function clearAll(){
 
 function defaultBF(){
   return [
-    {bf:18,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:20,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:22,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:24,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:28,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}}
+    {bf:18,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:20,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:22,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:24,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:28,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}}
   ];
 }
 
@@ -714,10 +714,9 @@ function renderSheet(){
   document.getElementById('mYield').textContent  = G.yield;
   document.getElementById('mProd').textContent   = G.prod;
   document.getElementById('mRaw').textContent    = k;
-  // populate GSM range fields
-  const gsmParts = (d.gsm||'').toString().split('-');
-  document.getElementById('gsmFrom').value = gsmParts[0]||'';
-  document.getElementById('gsmTo').value   = gsmParts[1]||'';
+  const gsmParts=(d.gsm||'').toString().split('-');
+  document.getElementById('gsmFrom').value=gsmParts[0]||'';
+  document.getElementById('gsmTo').value=gsmParts[1]||'';
 
   // RAW
   const rb=document.getElementById('rawBody'); rb.innerHTML=''; let totRaw=0;
@@ -1135,17 +1134,7 @@ function showApp(){
     });
   }).catch(e=>{
     document.getElementById('ls').classList.add('off');
-    console.error('Load error:', e);
-    // Still show app with default data, show retry toast
-    if(!BF.length) BF = defaultBF();
-    document.getElementById('gProd').addEventListener('input', globalChanged);
-    document.getElementById('gYield').addEventListener('input', globalChanged);
-    renderPanel();
-    renderNav();
-    renderSheet();
-    // Show retry notification
-    toast('Connection error — tap to retry','',true);
-    document.getElementById('toast').onclick = ()=>location.reload();
+    toast('Failed to load data. Check connection.','',true);
   });
 }
 
@@ -1199,18 +1188,13 @@ async function deleteUser(username){
 }
 
 function updateGSM(){
-  const from = parseInt(document.getElementById('gsmFrom').value)||0;
-  const to   = parseInt(document.getElementById('gsmTo').value)||0;
-  if(from && to && from < to){
-    BF[cur].gsm = from+'-'+to;
-  } else if(from && !to){
-    BF[cur].gsm = from+'';
-  } else {
-    BF[cur].gsm = '';
-  }
-  // update nav and title without full re-render
+  const from=parseInt(document.getElementById('gsmFrom').value)||0;
+  const to=parseInt(document.getElementById('gsmTo').value)||0;
+  if(from&&to&&from<to){ BF[cur].gsm=from+'-'+to; }
+  else if(from&&!to){ BF[cur].gsm=from+''; }
+  else{ BF[cur].gsm=''; }
   renderNav();
-  document.getElementById('bfTitle').textContent = BF[cur].bf+' BF'+(BF[cur].gsm?' — '+BF[cur].gsm+' GSM':'');
+  document.getElementById('bfTitle').textContent=BF[cur].bf+' BF'+(BF[cur].gsm?' — '+BF[cur].gsm+' GSM':'');
   persistSettings();
 }
 
