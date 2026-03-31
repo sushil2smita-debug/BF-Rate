@@ -537,6 +537,8 @@ async function loadAll(){
     if(bs.exists()) BF = bs.data().value;
   } catch(e){ console.warn('load settings:',e); }
   if(!BF.length) BF = defaultBF();
+  // migrate old entries without GSM field
+  BF.forEach(d=>{ if(d.gsm===undefined) d.gsm=0; });
 
   // load snapshots
   try{
@@ -926,7 +928,8 @@ async function confirmAddBF(){
   const n=parseInt(document.getElementById('mBF').value);
   const gsm=parseInt(document.getElementById('mGSM').value)||0;
   if(!n){ toast('Enter BF number','',true); return; }
-  if(BF.find(d=>d.bf===n&&d.gsm===gsm)){ toast('BF '+n+' GSM '+gsm+' already exists','',true); return; }
+  if(!gsm){ toast('Enter GSM value','',true); return; }
+  if(BF.find(d=>d.bf===n&&d.gsm===gsm)){ toast(n+' BF / '+gsm+' GSM already exists','',true); return; }
   const raw={}; let sum=0;
   OTHER().forEach(m=>{ const k=m.replace(/[\s\/]/g,'_'); raw[m]=parseFloat(document.getElementById('mp_'+k).value)||0; sum+=raw[m]; });
   if(sum>100){ toast('Total exceeds 100%','',true); return; }
