@@ -1135,20 +1135,7 @@ function showApp(){
     });
   }).catch(e=>{
     document.getElementById('ls').classList.add('off');
-    console.error('Load error:', e);
-    // Still show app with default data, show retry toast
-    if(!BF.length) BF = defaultBF();
-    document.getElementById('gProd').addEventListener('input', globalChanged);
-    document.getElementById('gYield').addEventListener('input', globalChanged);
-    renderPanel();
-    renderNav();
-    renderSheet();
-    // Show retry notification
-    const t = document.getElementById('toast');
-    t.innerHTML = 'Connection error — <span style="text-decoration:underline;cursor:pointer;" onclick="location.reload()">tap to retry</span>';
-    t.className = 'toast on err';
-    clearTimeout(t._t);
-    t._t = setTimeout(()=>t.classList.remove('on'), 6000);
+    toast('Failed to load data. Check connection.','',true);
   });
 }
 
