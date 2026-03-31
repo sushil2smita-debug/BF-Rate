@@ -418,8 +418,12 @@ tfoot td.r{text-align:right;color:var(--acc);}
         <input type="number" id="mBF" placeholder="e.g. 18">
       </div>
       <div class="fg">
-        <label>GSM</label>
-        <input type="number" id="mGSM" placeholder="e.g. 90">
+        <label>GSM From</label>
+        <input type="number" id="mGSMfrom" placeholder="e.g. 100">
+      </div>
+      <div class="fg">
+        <label>GSM To</label>
+        <input type="number" id="mGSMto" placeholder="e.g. 150">
       </div>
     </div>
     <div class="msec">Raw Material %</div>
@@ -903,7 +907,8 @@ function setGrade(mat,val){
 // ── ADD / DELETE BF ────────────────────────────────
 function openAdd(){
   document.getElementById('mBF').value='';
-  document.getElementById('mGSM').value='';
+  document.getElementById('mGSMfrom').value='';
+  document.getElementById('mGSMto').value='';
   const mf=document.getElementById('mRawFields'); mf.innerHTML='';
   OTHER().forEach(m=>{
     const k=m.replace(/[\s\/]/g,'_');
@@ -926,15 +931,18 @@ function closeOverlay(){ document.getElementById('overlay').classList.remove('op
 
 async function confirmAddBF(){
   const n=parseInt(document.getElementById('mBF').value);
-  const gsm=parseInt(document.getElementById('mGSM').value)||0;
+  const gf=parseInt(document.getElementById('mGSMfrom').value)||0;
+  const gt=parseInt(document.getElementById('mGSMto').value)||0;
   if(!n){ toast('Enter BF number','',true); return; }
-  if(!gsm){ toast('Enter GSM value','',true); return; }
+  if(!gf||!gt){ toast('Enter GSM range','',true); return; }
+  if(gf>=gt){ toast('GSM From must be less than To','',true); return; }
+  const gsm=gf+'-'+gt;
   if(BF.find(d=>d.bf===n&&d.gsm===gsm)){ toast(n+' BF / '+gsm+' GSM already exists','',true); return; }
   const raw={}; let sum=0;
   OTHER().forEach(m=>{ const k=m.replace(/[\s\/]/g,'_'); raw[m]=parseFloat(document.getElementById('mp_'+k).value)||0; sum+=raw[m]; });
   if(sum>100){ toast('Total exceeds 100%','',true); return; }
   BF.push({bf:n,gsm,raw,varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}});
-  BF.sort((a,b)=>a.bf-b.bf||((a.gsm||0)-(b.gsm||0)));
+  BF.sort((a,b)=>a.bf-b.bf||(parseInt(a.gsm||0)-parseInt(b.gsm||0)));
   cur=BF.findIndex(d=>d.bf===n&&d.gsm===gsm);
   closeOverlay();
   await persistSettings();
