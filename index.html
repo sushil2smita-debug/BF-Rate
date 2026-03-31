@@ -418,16 +418,9 @@ tfoot td.r{text-align:right;color:var(--acc);}
         <input type="number" id="mBF" placeholder="e.g. 18">
       </div>
       <div class="fg">
-        <label>GSM From</label>
-        <input type="number" id="mGSMfrom" placeholder="e.g. 100">
+        <label>GSM</label>
+        <input type="number" id="mGSM" placeholder="e.g. 90">
       </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
-      <div class="fg">
-        <label>GSM To</label>
-        <input type="number" id="mGSMto" placeholder="e.g. 150">
-      </div>
-      <div></div>
     </div>
     <div class="msec">Raw Material %</div>
     <div id="mRawFields"></div>
@@ -545,7 +538,7 @@ async function loadAll(){
   } catch(e){ console.warn('load settings:',e); }
   if(!BF.length) BF = defaultBF();
   // migrate old entries without GSM field
-  BF.forEach(d=>{ if(d.gsm===undefined||d.gsm===0) d.gsm=''; });
+  BF.forEach(d=>{ if(d.gsm===undefined) d.gsm=0; });
 
   // load snapshots
   try{
@@ -608,11 +601,11 @@ async function clearAll(){
 
 function defaultBF(){
   return [
-    {bf:18,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:20,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:22,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:24,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
-    {bf:28,gsm:'',raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}}
+    {bf:18,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:20,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:22,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:24,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}},
+    {bf:28,gsm:0,raw:{'DSOCC':0,'NDLKC':0,'Shopping Bag':0,'SMK':0,'I.Box':0,'98/2':0,'Fruit Box':0},varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}}
   ];
 }
 
@@ -714,10 +707,6 @@ function renderSheet(){
   document.getElementById('mYield').textContent  = G.yield;
   document.getElementById('mProd').textContent   = G.prod;
   document.getElementById('mRaw').textContent    = k;
-  // populate GSM range fields
-  const gsmParts = (d.gsm||'').toString().split('-');
-  document.getElementById('gsmFrom').value = gsmParts[0]||'';
-  document.getElementById('gsmTo').value   = gsmParts[1]||'';
 
   // RAW
   const rb=document.getElementById('rawBody'); rb.innerHTML=''; let totRaw=0;
@@ -914,8 +903,7 @@ function setGrade(mat,val){
 // ── ADD / DELETE BF ────────────────────────────────
 function openAdd(){
   document.getElementById('mBF').value='';
-  document.getElementById('mGSMfrom').value='';
-  document.getElementById('mGSMto').value='';
+  document.getElementById('mGSM').value='';
   const mf=document.getElementById('mRawFields'); mf.innerHTML='';
   OTHER().forEach(m=>{
     const k=m.replace(/[\s\/]/g,'_');
@@ -938,18 +926,15 @@ function closeOverlay(){ document.getElementById('overlay').classList.remove('op
 
 async function confirmAddBF(){
   const n=parseInt(document.getElementById('mBF').value);
-  const gsmFrom=parseInt(document.getElementById('mGSMfrom').value)||0;
-  const gsmTo=parseInt(document.getElementById('mGSMto').value)||0;
+  const gsm=parseInt(document.getElementById('mGSM').value)||0;
   if(!n){ toast('Enter BF number','',true); return; }
-  if(!gsmFrom||!gsmTo){ toast('Enter GSM range','',true); return; }
-  if(gsmFrom>=gsmTo){ toast('GSM From must be less than GSM To','',true); return; }
-  const gsm = gsmFrom+'-'+gsmTo;
+  if(!gsm){ toast('Enter GSM value','',true); return; }
   if(BF.find(d=>d.bf===n&&d.gsm===gsm)){ toast(n+' BF / '+gsm+' GSM already exists','',true); return; }
   const raw={}; let sum=0;
   OTHER().forEach(m=>{ const k=m.replace(/[\s\/]/g,'_'); raw[m]=parseFloat(document.getElementById('mp_'+k).value)||0; sum+=raw[m]; });
   if(sum>100){ toast('Total exceeds 100%','',true); return; }
   BF.push({bf:n,gsm,raw,varConv:{'Chemical':{amt:0},'Packing':{amt:0},'Electrical':{qty:0,rate:0},'Starch':{qty:0,rate:0},'Coal':{qty:0,rate:0}}});
-  BF.sort((a,b)=>a.bf-b.bf||(parseInt(a.gsm||0)-parseInt(b.gsm||0)));
+  BF.sort((a,b)=>a.bf-b.bf||((a.gsm||0)-(b.gsm||0)));
   cur=BF.findIndex(d=>d.bf===n&&d.gsm===gsm);
   closeOverlay();
   await persistSettings();
@@ -1188,22 +1173,6 @@ async function deleteUser(username){
   } catch(e){ toast('Failed','',true); }
 }
 
-function updateGSM(){
-  const from = parseInt(document.getElementById('gsmFrom').value)||0;
-  const to   = parseInt(document.getElementById('gsmTo').value)||0;
-  if(from && to && from < to){
-    BF[cur].gsm = from+'-'+to;
-  } else if(from && !to){
-    BF[cur].gsm = from+'';
-  } else {
-    BF[cur].gsm = '';
-  }
-  // update nav and title without full re-render
-  renderNav();
-  document.getElementById('bfTitle').textContent = BF[cur].bf+' BF'+(BF[cur].gsm?' — '+BF[cur].gsm+' GSM':'');
-  persistSettings();
-}
-
 // ── EXPOSE TO WINDOW ───────────────────────────────
 window.globalChanged   = globalChanged;
 window.saveSettings    = saveSettings;
@@ -1225,7 +1194,6 @@ window.setVar          = setVar;
 window.setVarFlat      = setVarFlat;
 window.setGrade        = setGrade;
 window.addMaterial     = addMaterial;
-window.updateGSM       = updateGSM;
 window.removeMaterial  = removeMaterial;
 window.switchTab       = switchTab;
 window.toggleHCard     = toggleHCard;
