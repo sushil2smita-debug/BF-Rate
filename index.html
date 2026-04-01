@@ -344,6 +344,14 @@ tfoot td.r{text-align:right;color:var(--acc);}
             <div class="chip">Yield <b id="mYield"></b>%</div>
             <div class="chip">Production <b id="mProd"></b> kg</div>
             <div class="chip">Raw Input <b id="mRaw"></b> kg</div>
+          <div class="chip" style="display:flex;align-items:center;gap:5px;padding:3px 6px;">
+            <span style="color:var(--mut);font-size:.7rem;">GSM</span>
+            <input type="number" id="gsmFrom" placeholder="From" min="0"
+              style="width:52px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--acc2);font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:2px 5px;outline:none;text-align:center;">
+            <span style="color:var(--mut);font-size:.7rem;">—</span>
+            <input type="number" id="gsmTo" placeholder="To" min="0"
+              style="width:52px;background:var(--bg);border:1px solid var(--bdr);border-radius:4px;color:var(--acc2);font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:2px 5px;outline:none;text-align:center;">
+          </div>
           </div>
         </div>
         <button class="btn btn-del" onclick="deleteCurrent()" style="padding:6px 12px;font-size:.7rem;">✕ Delete BF</button>
@@ -711,6 +719,9 @@ function renderSheet(){
   document.getElementById('mYield').textContent  = G.yield;
   document.getElementById('mProd').textContent   = G.prod;
   document.getElementById('mRaw').textContent    = k;
+  const gsmParts=(d.gsm||'').toString().split('-');
+  document.getElementById('gsmFrom').value=gsmParts[0]||'';
+  document.getElementById('gsmTo').value=gsmParts[1]||'';
 
   // RAW
   const rb=document.getElementById('rawBody'); rb.innerHTML=''; let totRaw=0;
@@ -1117,6 +1128,8 @@ function showApp(){
     document.getElementById('ls').classList.add('off');
     document.getElementById('gProd').addEventListener('input', globalChanged);
     document.getElementById('gYield').addEventListener('input', globalChanged);
+    document.getElementById('gsmFrom').addEventListener('change', updateGSM);
+    document.getElementById('gsmTo').addEventListener('change', updateGSM);
     renderPanel();
     renderNav();
     renderSheet();
@@ -1202,6 +1215,18 @@ window.setVar          = setVar;
 window.setVarFlat      = setVarFlat;
 window.setGrade        = setGrade;
 window.addMaterial     = addMaterial;
+
+function updateGSM(){
+  const from=parseInt(document.getElementById('gsmFrom').value)||0;
+  const to=parseInt(document.getElementById('gsmTo').value)||0;
+  if(from&&to&&from<to){ BF[cur].gsm=from+'-'+to; }
+  else if(from&&!to){ BF[cur].gsm=from+''; }
+  else{ BF[cur].gsm=''; }
+  renderNav();
+  document.getElementById('bfTitle').textContent=BF[cur].bf+' BF'+(BF[cur].gsm?' — '+BF[cur].gsm+' GSM':'');
+  persistSettings();
+}
+window.updateGSM = updateGSM;
 window.removeMaterial  = removeMaterial;
 window.switchTab       = switchTab;
 window.toggleHCard     = toggleHCard;
