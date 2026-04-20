@@ -709,6 +709,8 @@ function switchTab(t){
   document.getElementById('histView').style.display  = t==='hist'?'block':'none';
   document.getElementById('tabSheet').classList.toggle('active', t==='sheet');
   document.getElementById('tabHist').classList.toggle('active',  t==='hist');
+  // Hide BF nav tabs when in history — they're already shown inside snapshot cards
+  document.getElementById('bfNav').style.display = t==='hist'?'none':'flex';
   if(t==='hist') renderHistory();
 }
 
