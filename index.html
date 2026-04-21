@@ -25,6 +25,7 @@ html,body{min-height:100%;font-family:'Sora',sans-serif;background:var(--bg);col
 
 /* HEADER */
 .hdr{background:var(--sur);border-bottom:2px solid var(--acc);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:8px;flex-wrap:wrap;}
+.bf-nav-row{width:100%;display:none;flex-wrap:wrap;gap:6px;padding-top:6px;border-top:1px solid var(--bdr);}
 .logo{font-family:'IBM Plex Mono',monospace;font-size:.95rem;font-weight:700;color:var(--acc);letter-spacing:.06em;white-space:nowrap;}
 .nav-wrap{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 .bfbtn{background:transparent;border:1.5px solid var(--bdr);color:var(--mut);font-family:'IBM Plex Mono',monospace;font-size:.74rem;padding:6px 13px;border-radius:var(--r);cursor:pointer;transition:all .15s;font-weight:600;white-space:nowrap;}
@@ -263,7 +264,6 @@ tfoot td.r{text-align:right;color:var(--acc);}
   <div class="logo">BF COSTING</div>
   <div class="nav-wrap">
     <button class="hbtn mob-only" onclick="toggleDrawer()">⚙</button>
-    <div id="bfNav"></div>
     <div id="adminBtns" style="display:none;display:flex;gap:6px;flex-wrap:wrap;">
       <button class="hbtn green" onclick="openAdd()">+ Add BF</button>
       <button class="hbtn" onclick="takeSnapshot()" style="border-color:var(--grn);color:var(--grn);">💾 Save Snapshot</button>
@@ -279,6 +279,7 @@ tfoot td.r{text-align:right;color:var(--acc);}
       <button class="hbtn" onclick="doLogout()" style="padding:4px 8px;font-size:.68rem;">Logout</button>
     </div>
   </div>
+  <div class="bf-nav-row" id="bfNav"></div>
 </div>
 
 <div class="layout">
@@ -1104,6 +1105,7 @@ async function hashStr(str){
 function showApp(){
   document.getElementById('loginScreen').classList.add('off');
   document.getElementById('userChip').style.display = 'flex';
+  document.getElementById('bfNav').style.display = 'flex';
   document.getElementById('userChipName').textContent = currentUser.username;
 
   if(currentUser.role === 'admin'){
