@@ -55,6 +55,8 @@ html,body{min-height:100%;font-family:'Sora',sans-serif;background:var(--bg);col
 
 /* TABS in sheet area */
 .tab-row{display:flex;gap:0;border-bottom:2px solid var(--bdr);margin-bottom:16px;}
+.bf-sel-wrap{display:none;margin-bottom:12px;}
+.bf-sel-wrap select{width:100%;background:var(--sur);border:1.5px solid var(--acc);border-radius:var(--r);color:var(--acc);font-family:'IBM Plex Mono',monospace;font-size:.85rem;font-weight:600;padding:10px 12px;outline:none;}
 .tab{background:transparent;border:none;font-family:'IBM Plex Mono',monospace;font-size:.76rem;font-weight:600;color:var(--mut);padding:8px 18px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
 .tab:hover{color:var(--txt);}
 .tab.active{color:var(--acc);border-bottom-color:var(--acc);}
@@ -168,6 +170,10 @@ tfoot td.r{text-align:right;color:var(--acc);}
 
 /* MOBILE */
 @media(max-width:700px){
+  .hdr{position:static;padding:8px 10px;}
+  .bf-nav-row{display:none!important;}
+  .bf-sel-wrap{display:block;}
+  .hbtn{padding:5px 8px;font-size:.68rem;}
   .gpanel{position:fixed;left:0;top:0;bottom:0;z-index:300;transform:translateX(-100%);width:272px;padding-top:58px;box-shadow:6px 0 28px rgba(0,0,0,.6);}
   .gpanel.open{transform:translateX(0);}
   .dc{display:flex!important;position:absolute;top:12px;right:12px;background:transparent;border:none;color:var(--mut);font-size:1.3rem;cursor:pointer;}
@@ -329,6 +335,7 @@ tfoot td.r{text-align:right;color:var(--acc);}
   <div class="sheet" id="sheetArea" onclick="bgClick(event)">
 
     <!-- TABS -->
+    <div class="bf-sel-wrap" id="bfSelWrap"><select id="bfSelect"></select></div>
     <div class="tab-row">
       <button class="tab active" id="tabSheet" onclick="switchTab('sheet')">Current Sheet</button>
       <button class="tab" id="tabHist" onclick="switchTab('hist')">📋 History</button>
@@ -712,6 +719,7 @@ function switchTab(t){
   document.getElementById('tabHist').classList.toggle('active',  t==='hist');
   // Hide BF nav tabs when in history — they're already shown inside snapshot cards
   document.getElementById('bfNav').style.display = t==='hist'?'none':'flex';
+  document.getElementById('bfSelWrap').style.display = t==='hist'?'none':'';
   if(t==='hist') renderHistory();
 }
 
@@ -1231,6 +1239,7 @@ function updateGSM(){
   persistSettings();
 }
 window.updateGSM = updateGSM;
+document.getElementById('bfSelect').addEventListener('change', e=>{ cur=parseInt(e.target.value); renderNav(); renderSheet(); });
 window.removeMaterial  = removeMaterial;
 window.switchTab       = switchTab;
 window.toggleHCard     = toggleHCard;
