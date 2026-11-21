@@ -709,6 +709,17 @@ function renderNav(){
     b.onclick=()=>{ cur=i; renderNav(); renderSheet(); closeDrawer(); switchTab('sheet'); };
     nav.appendChild(b);
   });
+  const sel=document.getElementById('bfSelect');
+  if(sel){
+    sel.innerHTML='';
+    BF.forEach((d,i)=>{
+      const o=document.createElement('option');
+      o.value=i;
+      o.textContent=d.bf+' BF'+(d.gsm?' / '+d.gsm+' GSM':'');
+      if(i===cur) o.selected=true;
+      sel.appendChild(o);
+    });
+  }
 }
 
 // ── TABS ───────────────────────────────────────────
