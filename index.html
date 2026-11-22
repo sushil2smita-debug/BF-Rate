@@ -261,6 +261,36 @@ tfoot td.r{text-align:right;color:var(--acc);}
 .user-chip b{color:var(--acc2);}
 
 </style>
+<style>
+.sm-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+.sm-seg{display:inline-flex;border:1.5px solid var(--bdr);border-radius:6px;overflow:hidden;}
+.sm-seg button{background:transparent;border:0;color:var(--mut);font-family:'IBM Plex Mono',monospace;font-size:.72rem;font-weight:600;padding:7px 12px;cursor:pointer;}
+.sm-seg button[aria-pressed="true"]{background:var(--acc);color:#000;}
+.sm-meta{font-size:.7rem;color:var(--mut);font-family:'IBM Plex Mono',monospace;}
+.sm-cols,.sm-row{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr 18px;gap:8px;align-items:center;}
+.sm-cols{padding:0 14px 6px;font-size:.64rem;color:var(--mut);font-family:'IBM Plex Mono',monospace;}
+.sm-cols span:nth-child(n+2){text-align:right;}
+.sm-row{width:100%;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;margin-bottom:8px;padding:13px 14px;color:var(--txt);font-family:'IBM Plex Mono',monospace;text-align:left;cursor:pointer;}
+.sm-row:hover{border-color:var(--acc);}
+.sm-row:focus-visible{outline:2px solid var(--acc);}
+.sm-nm{font-weight:600;font-size:.9rem;}
+.sm-nm i{font-style:normal;display:block;color:var(--mut);font-weight:400;font-size:.74rem;margin-top:2px;}
+.sm-v{text-align:right;font-size:.84rem;}
+.sm-v small{display:none;font-size:.6rem;color:var(--mut);margin-bottom:2px;}
+.sm-t{color:var(--acc);font-weight:600;}
+.sm-chev{color:var(--mut);text-align:center;font-size:1.1rem;}
+.sm-back{margin-bottom:12px;}
+@media(max-width:700px){
+  .sm-cols{display:none;}
+  .sm-row{grid-template-columns:1fr 1fr 1fr 18px;row-gap:9px;}
+  .sm-nm{grid-column:1/4;}
+  .sm-chev{grid-column:4;grid-row:1;}
+  .sm-v{text-align:left;}
+  .sm-v small{display:block;}
+  .tab{padding:8px 12px;}
+}
+@media print{.sm-back,.sm-ctl{display:none!important;}}
+</style>
 </head>
 <body>
 
@@ -337,12 +367,27 @@ tfoot td.r{text-align:right;color:var(--acc);}
     <!-- TABS -->
     <div class="bf-sel-wrap" id="bfSelWrap"><select id="bfSelect"></select></div>
     <div class="tab-row">
-      <button class="tab active" id="tabSheet" onclick="switchTab('sheet')">Current Sheet</button>
+      <button class="tab active" id="tabSum" onclick="switchTab('sum')">Summary</button>
+      <button class="tab" id="tabSheet" onclick="switchTab('sheet')">Current Sheet</button>
       <button class="tab" id="tabHist" onclick="switchTab('hist')">📋 History</button>
+    </div>
+
+    <!-- SUMMARY VIEW -->
+    <div id="sumView" style="display:none;">
+      <div class="sm-ctl">
+        <div class="sm-seg" role="group" aria-label="Show values as">
+          <button type="button" id="smAmt" aria-pressed="true">Total</button>
+          <button type="button" id="smKg" aria-pressed="false">Per kg</button>
+        </div>
+        <span class="sm-meta" id="smMeta"></span>
+      </div>
+      <div class="sm-cols"><span>BF / GSM</span><span>Raw material ₹</span><span>Conversion ₹</span><span>Grand total ₹</span><span></span></div>
+      <div id="smList"></div>
     </div>
 
     <!-- CURRENT SHEET VIEW -->
     <div id="sheetView">
+      <button class="btn btn-out sm-back" onclick="switchTab('sum')" style="padding:6px 12px;font-size:.72rem;">‹ All BF</button>
       <div class="print-hdr"><h1 id="ph_title"></h1><p id="ph_meta"></p></div>
 
       <div class="sheet-top">
@@ -724,14 +769,55 @@ function renderNav(){
 
 // ── TABS ───────────────────────────────────────────
 function switchTab(t){
+  document.getElementById('sumView').style.display   = t==='sum'?'block':'none';
   document.getElementById('sheetView').style.display = t==='sheet'?'block':'none';
   document.getElementById('histView').style.display  = t==='hist'?'block':'none';
+  document.getElementById('tabSum').classList.toggle('active',   t==='sum');
   document.getElementById('tabSheet').classList.toggle('active', t==='sheet');
   document.getElementById('tabHist').classList.toggle('active',  t==='hist');
-  // Hide BF nav tabs when in history — they're already shown inside snapshot cards
-  document.getElementById('bfNav').style.display = t==='hist'?'none':'flex';
-  document.getElementById('bfSelWrap').style.display = t==='hist'?'none':'';
+  // BF nav is not needed on Summary (list is the nav) or History (cards have their own)
+  const hideNav = t==='hist' || t==='sum';
+  document.getElementById('bfNav').style.display = hideNav?'none':'flex';
+  document.getElementById('bfSelWrap').style.display = hideNav?'none':'';
   if(t==='hist') renderHistory();
+  if(t==='sum') renderSummary();
+}
+
+// ── SUMMARY (front view) ───────────────────────────
+let smMode='amt';
+function calcBF(d){
+  const k=rk(), l=lp(d); let tr=0, tc=0;
+  [...OTHER(),'Local'].forEach(mat=>{
+    const pct=mat==='Local'?l:(d.raw[mat]||0);
+    const kgs=parseFloat(((pct/100)*k).toFixed(4)), rate=G.rates[mat]||0;
+    if(pct>0) tr+=kgs*rate;
+  });
+  FIXED.forEach(item=>{ tc+=G.fixedConv[item]||0; });
+  VAR.forEach(item=>{
+    const c=d.varConv[item]||{};
+    tc+=FLAT.includes(item)?(c.amt||0):((c.qty||0)*(c.rate||0));
+  });
+  return {tr,tc};
+}
+function renderSummary(){
+  const list=document.getElementById('smList');
+  document.getElementById('smAmt').textContent='Total for '+G.prod+' kg';
+  document.getElementById('smAmt').setAttribute('aria-pressed',smMode==='amt');
+  document.getElementById('smKg').setAttribute('aria-pressed',smMode==='kg');
+  document.getElementById('smMeta').textContent='Yield '+G.yield+'% · Raw input '+rk()+' kg';
+  const val=n=>fmt(smMode==='amt'?n:n/G.prod);
+  list.innerHTML='';
+  BF.forEach((d,i)=>{
+    const c=calcBF(d);
+    const b=document.createElement('button');
+    b.type='button'; b.className='sm-row'; b.setAttribute('data-i',i);
+    b.innerHTML='<span class="sm-nm">'+d.bf+' BF<i>'+(d.gsm?d.gsm+' GSM':'GSM not set')+'</i></span>'
+      +'<span class="sm-v"><small>Raw material</small>'+val(c.tr)+'</span>'
+      +'<span class="sm-v"><small>Conversion</small>'+val(c.tc)+'</span>'
+      +'<span class="sm-v sm-t"><small>Grand total</small>'+val(c.tr+c.tc)+'</span>'
+      +'<span class="sm-chev" aria-hidden="true">›</span>';
+    list.appendChild(b);
+  });
 }
 
 // ── SHEET ──────────────────────────────────────────
@@ -790,6 +876,7 @@ function renderSheet(){
   document.getElementById('totConvKg').textContent='₹ '+fmt(totConv/G.prod)+' / kg';
   document.getElementById('totGrand').textContent ='₹ '+fmt(grand);
   document.getElementById('totGrandKg').textContent='₹ '+fmt(grand/G.prod)+' / kg';
+  if(document.getElementById('sumView').style.display!=='none') renderSummary();
 }
 
 // ── HISTORY ────────────────────────────────────────
@@ -1156,6 +1243,7 @@ function showApp(){
     renderPanel();
     renderNav();
     renderSheet();
+    switchTab('sum');
     // create default admin in background if needed
     hashStr('admin123').then(hash=>{
       getDoc(doc(db,'users','admin')).then(s=>{
@@ -1251,6 +1339,13 @@ function updateGSM(){
 }
 window.updateGSM = updateGSM;
 document.getElementById('bfSelect').addEventListener('change', e=>{ cur=parseInt(e.target.value); renderNav(); renderSheet(); });
+document.getElementById('smList').addEventListener('click', e=>{
+  const b=e.target.closest('.sm-row'); if(!b) return;
+  cur=parseInt(b.getAttribute('data-i'),10);
+  renderNav(); renderSheet(); switchTab('sheet'); window.scrollTo(0,0);
+});
+document.getElementById('smAmt').addEventListener('click', ()=>{ smMode='amt'; renderSummary(); });
+document.getElementById('smKg').addEventListener('click', ()=>{ smMode='kg'; renderSummary(); });
 window.removeMaterial  = removeMaterial;
 window.switchTab       = switchTab;
 window.toggleHCard     = toggleHCard;
